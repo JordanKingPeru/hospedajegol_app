@@ -1,31 +1,51 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useTheme } from 'next-themes'
+import { useEffect, useState } from 'react';
+import { useTheme } from 'next-themes';
+import { Button } from '@nextui-org/button';
+import { Switch, useSwitch, VisuallyHidden, SwitchProps } from "@nextui-org/react";
+import { SunIcon } from './SunIcon';
+import { MoonIcon } from './MoonIcon';
 
-import { Button } from '@nextui-org/button'
-
-export default function ThemeSwitcher() {
-  const [mounted, setMounted] = useState(false)
-  const { theme, setTheme } = useTheme()
+const ThemeSwitch: React.FC<SwitchProps> = (props) => {
+  const { setTheme } = useTheme();
+  const {
+    Component,
+    slots,
+    isSelected,
+    getBaseProps,
+    getInputProps,
+    getWrapperProps
+  } = useSwitch(props);
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    isSelected ? setTheme('light') : setTheme('dark');
+  }, [isSelected, setTheme]);
 
-  if (!mounted) return null
+  const switchColor = isSelected ? "bg-red-100 hover:bg-red-200" : "bg-default-100 hover:bg-default-200";
 
   return (
-    <div className='flex gap-4'>
-      <Button size='sm' variant='flat' onClick={() => setTheme('light')}>
-        Light
-      </Button>
-      <Button size='sm' variant='flat' onClick={() => setTheme('dark')}>
-        Dark
-      </Button>
-      <Button size='sm' variant='flat' onClick={() => setTheme('modern')}>
-        Modern
-      </Button>
+    <div className="flex flex-col gap-2">
+      <Component {...getBaseProps()}>
+        <VisuallyHidden>
+          <input {...getInputProps()} />
+        </VisuallyHidden>
+        <div
+          {...getWrapperProps()}
+          className={slots.wrapper({
+            class: [
+              "w-8 h-8",
+              "flex items-center justify-center",
+              "rounded-lg",
+              switchColor
+            ],
+          })}
+        >
+          {isSelected ? <SunIcon /> : <MoonIcon />}
+        </div>
+      </Component>
     </div>
-  )
+  );
 }
+
+export default ThemeSwitch;

@@ -17,10 +17,11 @@ import {
 } from '@nextui-org/react'
 import { SearchIcon } from './SearchIcon' // Asegúrate de que SearchIcon también sea un archivo TSX
 import Image from 'next/image'
+import ThemeSwitch from './ThemeSwitcher'
 
 const NavBarHs: React.FC = () => {
   return (
-    <Navbar isBordered>
+    <Navbar isBordered isBlurred maxWidth='xl'>
       <NavbarContent justify='start'>
         <NavbarBrand className='mr-4'>
           <Link href='/'>
@@ -41,23 +42,10 @@ const NavBarHs: React.FC = () => {
           </Link>
           {/* <p className='hidden font-bold text-inherit sm:block'>ACME</p> */}
         </NavbarBrand>
-        
       </NavbarContent>
 
       <NavbarContent as='div' className='items-center' justify='end'>
-        <Input
-          classNames={{
-            base: 'max-w-full sm:max-w-[10rem] h-10',
-            mainWrapper: 'h-full',
-            input: 'text-small',
-            inputWrapper:
-              'h-full font-normal text-default-500 bg-default-400/20 dark:bg-default-500/20'
-          }}
-          placeholder='Type to search...'
-          size='sm'
-          startContent={<SearchIcon size={18} />}
-          type='search'
-        />
+        <ThemeSwitch />
         <Dropdown placement='bottom-end'>
           <DropdownTrigger>
             <Avatar
@@ -91,4 +79,4 @@ const NavBarHs: React.FC = () => {
   )
 }
 
-export default NavBarHs;
+export default NavBarHs

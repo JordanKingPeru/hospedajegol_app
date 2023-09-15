@@ -24,7 +24,11 @@ const config: Config = {
       themes: {
         light: {
           layout: {}, // light theme layout tokens
-          colors: {} // light theme colors
+          colors: {
+            primary: {
+              DEFAULT: '#b32020', // establece el color predeterminado a un rojo anaranjado
+            },
+          }, // light theme colors
         },
         dark: {
           layout: {}, // dark theme layout tokens
