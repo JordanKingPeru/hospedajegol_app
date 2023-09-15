@@ -5,6 +5,8 @@ import Providers from './providers'
 import Link from 'next/link'
 import ThemeSwitcher from './components/ThemeSwitcher'
 import Image from 'next/image'
+// Importa el componente con el nuevo nombre
+import NavBarHs from './components/NavBarHs'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -48,10 +50,10 @@ export default function RootLayout({
             </nav>
           </header>
           <main>
+            <NavBarHs />
             {children}
           </main>
           <footer>
-            
           </footer>
         </Providers>
       </body>
