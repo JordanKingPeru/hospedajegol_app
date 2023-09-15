@@ -47,8 +47,12 @@ export default function RootLayout({
               <ThemeSwitcher />
             </nav>
           </header>
-          <main>{children}</main>
-          <footer></footer>
+          <main>
+            {children}
+          </main>
+          <footer>
+            
+          </footer>
         </Providers>
       </body>
     </html>
