@@ -20,6 +20,7 @@ const config: Config = {
     }
   },
   plugins: [
+    require('@tailwindcss/forms'),
     nextui({
       themes: {
         light: {

@@ -4,8 +4,8 @@ import { useEffect, useState } from 'react';
 import { useTheme } from 'next-themes';
 import { Button } from '@nextui-org/button';
 import { Switch, useSwitch, VisuallyHidden, SwitchProps } from "@nextui-org/react";
-import { SunIcon } from './SunIcon';
-import { MoonIcon } from './MoonIcon';
+import { SunIcon } from './navbar/SunIcon';
+import { MoonIcon } from './navbar/MoonIcon';
 
 const ThemeSwitch: React.FC<SwitchProps> = (props) => {
   const { setTheme } = useTheme();

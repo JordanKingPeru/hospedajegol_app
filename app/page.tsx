@@ -1,45 +1,54 @@
-import Image from 'next/image'
+'use client'
 
-import { Button } from '@nextui-org/button'
-import { Card, CardBody } from '@nextui-org/card'
-import ProductSize from './components/ProductSize'
-
-import shoe from '@/public/images/shoe.webp'
+import {Tabs, Tab} from "@nextui-org/react";
+import FormHsGol from './components/form/formulario'
+import React from "react";
+import {Card, CardBody} from "@nextui-org/react";
+import { UserIcon, PresentationChartBarIcon, HomeModernIcon} from "@heroicons/react/24/solid";
 
 export default function Home() {
+  let tabs = [
+    {
+      id: "dashboard",
+      label: "Reporte",
+      icon: <PresentationChartBarIcon className="mx-auto h-6 w-6 text-white-200" aria-hidden="true" />,
+      content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."
+    },
+    {
+      id: "cliente",
+      label: "Cliente",
+      icon: <UserIcon className="mx-auto h-6 w-6 text-white-200" aria-hidden="true" />,
+      content: "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."
+    },
+    {
+      id: "habitacion",
+      label: "Habitación",
+      icon: <HomeModernIcon className="mx-auto h-6 w-6 text-white-200" aria-hidden="true" />,
+      content: <FormHsGol />
+    }
+  ];
   return (
-    <section className='py-36'>
-      <div className='container flex items-center justify-center'>
-        <Card className='py-4 lg:w-3/4 xl:w-1/2'>
-          <CardBody className='overflow-visible py-2'>
-            <div className='flex gap-6'>
-              <Image alt='Shoe' className='flex-1 object-cover' src={shoe} />
-              <div className='flex-1'>
-                <h2 className='text-lg font-bold uppercase'>
-                  Nike Adapt BB 2.0
-                </h2>
-                <p className='text-sm text-default-500'>
-                  Consistent, customized fit, game-changing.
-                </p>
-
-                <div className='mb-6 mt-2 flex gap-3'>
-                  <span className='font-bold'>$279.79</span>
-                  <span className='text-default-600 line-through'>$350</span>
-                  <span className='text-success'>20% off</span>
-                </div>
-
-                <ProductSize />
-
-                <div className='mt-6 flex gap-6'>
-                  <Button color='primary'>Buy now</Button>
-                  <Button color='primary' variant='bordered' radius='full'>
-                    Add to bag
-                  </Button>
-                </div>
-              </div>
+    <section id='habitacionDisponible' className='py-10'>
+      <div className='container flex items-center justify-center '>
+      <div className="flex w-full flex-col">
+      <Tabs aria-label="Options" size="md" radius="sm" color="primary" variant="bordered" items={tabs}>
+        {(item) => (
+          <Tab key={item.id} title={
+            <div className="flex items-center space-x-2">
+              {item.icon}
+              <span>{item.label}</span>
             </div>
-          </CardBody>
-        </Card>
+          }>
+            <Card>
+              <CardBody>
+                {item.content}
+              </CardBody>
+            </Card>  
+          </Tab>
+        )}
+      </Tabs>
+    </div>  
+        
       </div>
     </section>
   )
