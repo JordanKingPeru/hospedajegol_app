@@ -1,17 +1,15 @@
 import { Button } from '@nextui-org/button'
 import { Input } from '@nextui-org/input'
 import { useMemo, useState } from 'react'
+import InputElement from './elements/InputElement'
 
 export default function FormHsGolClient() {
-  const [value, setValue] = useState('')
-  const [value_docid, setValue_docid] = useState('1234567')
-  const validateEmail = (value: string) => value.match(/^(?:\d{8})$/)
-
+  const [valueDocId, setValueDocId] = useState('')
+  const validateDNI = (value: string) => !!value.match(/^(?:\d{8})$/)
   const isInvalid = useMemo(() => {
-    if (value === '') return false
-
-    return validateEmail(value) ? false : true
-  }, [value])
+    if (valueDocId === '') return false
+    return !validateDNI(valueDocId)
+  }, [valueDocId])
 
   return (
     <form>
@@ -25,44 +23,25 @@ export default function FormHsGolClient() {
 
         <div className='mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6'>
           <div className='sm:col-span-3'>
-            <Input
-              type='email'
-              key='first-name'
-              isClearable
-              labelPlacement='outside'
-              radius='sm'
-              variant='faded'
-              label='Email'
-              value={value_docid}
-              description={value_docid}
+            <InputElement
+              label='DNI'
+              type='text'
+              key='doc-id'
+              valueDocId={valueDocId}
+              setValueDocId={setValueDocId}
               isInvalid={isInvalid}
-              color={isInvalid ? 'danger' : 'success'}
-              errorMessage={isInvalid && 'Please enter a valid email'}
-              onClear={() => console.log('input cleared')}
-              onValueChange={setValue_docid}
-              classNames={{
-                input: ['border-0', 'focus:outline-none', 'focus:ring-0']
-              }}
             />
-            <p className='text-small text-default-500'>
-              Input value: {value_docid}
-            </p>
           </div>
 
           <div className='sm:col-span-3'>
-            <label
-              htmlFor='last-name'
-              className='block text-sm font-medium leading-6 text-gray-900'
-            >
-              Last name
-            </label>
-            <div className='mt-2'>
-              <input
+            <div className='sm:col-span-3'>
+              <InputElement
+                label='DNI'
                 type='text'
-                name='last-name'
-                id='last-name'
-                autoComplete='family-name'
-                className='block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6'
+                key='doc-id'
+                valueDocId={valueDocId}
+                setValueDocId={setValueDocId}
+                isInvalid={isInvalid}
               />
             </div>
           </div>
