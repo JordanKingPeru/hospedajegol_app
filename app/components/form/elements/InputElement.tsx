@@ -46,7 +46,7 @@ const InputElement: React.FC<InputElementProps> = ({
           input: ['border-0', 'focus:outline-none', 'focus:ring-0']
         }}
       />
-      <p className='text-small text-default-500'>Input value: {valueDocId}</p>
+      {/*<p className='text-small text-default-500'>Input value: {valueDocId}</p>*/}
     </>
   )
 }
