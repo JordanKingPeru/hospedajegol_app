@@ -10,6 +10,7 @@ interface InputElementProps {
   isInvalid: boolean
   mesageError?: string
   isEndContent?: boolean
+  defaultValue?: string
 }
 
 const InputElement: React.FC<InputElementProps> = ({
@@ -20,7 +21,8 @@ const InputElement: React.FC<InputElementProps> = ({
   setValueDocId,
   isInvalid,
   isEndContent = false,
-  mesageError = ''
+  mesageError = '',
+  defaultValue
 }) => {
   return (
     <>
@@ -30,6 +32,7 @@ const InputElement: React.FC<InputElementProps> = ({
         radius='sm'
         variant='faded'
         autoComplete='on'
+        defaultValue={defaultValue}
         label={label}
         type={type}
         key={key}

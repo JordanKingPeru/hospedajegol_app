@@ -28,14 +28,29 @@ export const canalContacto = [
     description: 'Whatsapp'
   },
   {
-    label: 'Página web',
-    value: 'paginaWeb',
-    description: 'Página web'
+    label: 'Booking.com',
+    value: 'bookingWeb',
+    description: 'Página web de Booking.com'
+  },
+  {
+    label: 'Expedia.com',
+    value: 'expediaWeb',
+    description: 'Página web de Expedian.com'
+  },
+  {
+    label: 'Búsqueda en Internet',
+    value: 'busquedaWeb',
+    description: 'Busqueda en Internet'
   },
   {
     label: 'Recomendación',
     value: 'recomendacion',
     description: 'Recomendación'
+  },
+  {
+    label: 'Vivo, estudio o trabajo cerca',
+    value: 'cercania',
+    description: 'Vivo, estudio o trabajo cerca'
   }
 ]
 

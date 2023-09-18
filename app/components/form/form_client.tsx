@@ -1,5 +1,5 @@
 import { Button } from '@nextui-org/button'
-import { SetStateAction, useMemo, useState } from 'react'
+import { SetStateAction, useMemo, useState, ChangeEvent } from 'react'
 import { Select, SelectSection, SelectItem } from '@nextui-org/select'
 import InputElement from './elements/InputElement'
 import {
@@ -10,6 +10,23 @@ import {
 } from './elements/dataOptions'
 import { Divider } from '@nextui-org/divider'
 import Datepicker from 'react-tailwindcss-datepicker'
+import {
+  getFirestore,
+  doc,
+  onSnapshot,
+  collection,
+  getDocs,
+  setDoc,
+  updateDoc,
+  serverTimestamp,
+  deleteField,
+  arrayUnion,
+  arrayRemove
+} from 'firebase/firestore'
+
+const guardar = async () => {
+  const db = getFirestore()
+}
 
 type DateType = Date | string | null
 interface DateRangeType {
@@ -18,15 +35,40 @@ interface DateRangeType {
 }
 
 export default function FormHsGolClient() {
+  const [valueDocType, setValueDocType] = useState<Set<string>>(new Set())
   const [valueDocId, setValueDocId] = useState('')
   const [valueName, setValueName] = useState('')
   const [valueSecondName, setValueSecondName] = useState('')
+  const [valueCanalLlegada, setValueCanalLlegada] = useState<Set<string>>(
+    new Set()
+  )
+  const [valueBookingNumber, setValueBookingNumber] = useState('')
+  const [valueTipoAlquiler, setValueTipoAlquiler] = useState<Set<string>>(
+    new Set()
+  )
+  const [valueHabitacion, setValueHabitacion] = useState<Set<string>>(new Set())
   const [valuePrecio, setValuePrecio] = useState('')
-  const [valueCantidadDias, setValuePCantidadDias] = useState('')
+  const [valueCantidadDias, setValueCantidadDias] = useState('')
   const [valueDate, setValueDate] = useState<DateRangeType>({
     startDate: null,
     endDate: null
   })
+
+  const handleSelectionChangeDocType = (e: ChangeEvent<HTMLSelectElement>) => {
+    setValueDocType(new Set([e.target.value]))
+  }
+
+  const handleSelectionChangeCanal = (e: ChangeEvent<HTMLSelectElement>) => {
+    setValueCanalLlegada(new Set([e.target.value]))
+  }
+
+  const handleSelectionTipoAlquiler = (e: ChangeEvent<HTMLSelectElement>) => {
+    setValueTipoAlquiler(new Set([e.target.value]))
+  }
+
+  const handleSelectionHabitacion = (e: ChangeEvent<HTMLSelectElement>) => {
+    setValueHabitacion(new Set([e.target.value]))
+  }
 
   const handleValueChange = (
     newValue: DateRangeType | null,
@@ -39,6 +81,7 @@ export default function FormHsGolClient() {
   }
 
   const validateDNI = (value: string) => !!value.match(/^(?:\d{8})$/)
+  const validateBookingNumber = (value: string) => !!value.match(/^(?:\d{10})$/)
   const validateName = (value: string) =>
     !!value.match(/^[a-zA-Z]+(?:\s[a-zA-Z]+)*$/)
 
@@ -53,6 +96,11 @@ export default function FormHsGolClient() {
     if (valueDocId === '') return false
     return !validateDNI(valueDocId)
   }, [valueDocId])
+
+  const isBookingNumberInvalid = useMemo(() => {
+    if (valueBookingNumber === '') return false
+    return !validateBookingNumber(valueBookingNumber)
+  }, [valueBookingNumber])
 
   const isNameInvalid = useMemo(() => {
     if (valueName === '') return false
@@ -80,10 +128,10 @@ export default function FormHsGolClient() {
     <form>
       <div className='border-b pb-12'>
         <h2 className='text-base font-semibold leading-7 text-gray-900 dark:text-gray-50'>
-          Personal Information
+          Registro de cliente
         </h2>
         <p className='mt-1 text-sm leading-6 text-gray-600 dark:text-gray-100'>
-          Use a permanent address where you can receive mail.
+          Registrar los datos del cliente y la habitación.
         </p>
 
         <div className='mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6'>
@@ -95,8 +143,9 @@ export default function FormHsGolClient() {
               labelPlacement='outside'
               variant='faded'
               label='Tipo documento'
-              defaultSelectedKeys={['dni']}
               className='w-full'
+              selectedKeys={valueDocType}
+              onChange={handleSelectionChangeDocType}
             >
               {tipoDocumento.map(tipDoc => (
                 <SelectItem key={tipDoc.value} value={tipDoc.value}>
@@ -149,6 +198,8 @@ export default function FormHsGolClient() {
               variant='faded'
               label='¿Cómo conoció HS Gol?'
               className='w-full'
+              selectedKeys={valueCanalLlegada}
+              onChange={handleSelectionChangeCanal}
             >
               {canalContacto.map(canal => (
                 <SelectItem key={canal.value} value={canal.value}>
@@ -156,6 +207,21 @@ export default function FormHsGolClient() {
                 </SelectItem>
               ))}
             </Select>
+            <p className='text-small text-default-500'>
+              Selected: {valueCanalLlegada}
+            </p>
+          </div>
+
+          <div className='sm:col-span-3'>
+            <InputElement
+              label='Código reserva (Booking number)'
+              type='text'
+              key='bookingNumber'
+              valueDocId={valueBookingNumber}
+              setValueDocId={setValueBookingNumber}
+              isInvalid={isBookingNumberInvalid}
+              mesageError={'Son 10 digitos numéricos'}
+            />
           </div>
 
           <div className='col-span-full'>
@@ -171,6 +237,8 @@ export default function FormHsGolClient() {
               variant='faded'
               label='Tipo alquiler'
               className='w-full'
+              selectedKeys={valueTipoAlquiler}
+              onChange={handleSelectionTipoAlquiler}
             >
               {tiposAlquiler.map(tipoAlquiler => (
                 <SelectItem key={tipoAlquiler.value} value={tipoAlquiler.value}>
@@ -189,6 +257,8 @@ export default function FormHsGolClient() {
               variant='faded'
               label='Habitación'
               className='w-full'
+              selectedKeys={valueHabitacion}
+              onChange={handleSelectionHabitacion}
             >
               {habitacionDisponible.map(habitacion => (
                 <SelectItem key={habitacion.value} value={habitacion.value}>
@@ -200,7 +270,7 @@ export default function FormHsGolClient() {
 
           <div className='sm:col-span-2'>
             <InputElement
-              label='Costo'
+              label='Precio'
               type='number'
               key='costoHospedaje'
               valueDocId={valuePrecio}
@@ -217,9 +287,10 @@ export default function FormHsGolClient() {
               type='number'
               key='cantidadDias'
               valueDocId={valueCantidadDias}
-              setValueDocId={setValuePCantidadDias}
+              setValueDocId={setValueCantidadDias}
               isInvalid={isCantidadDiasInvalid}
               mesageError={'Días enteros'}
+              defaultValue={'1'}
             />
           </div>
 
