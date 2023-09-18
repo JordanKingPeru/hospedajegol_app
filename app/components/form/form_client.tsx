@@ -1,18 +1,41 @@
 import { Button } from '@nextui-org/button'
-import { useMemo, useState } from 'react'
+import { SetStateAction, useMemo, useState } from 'react'
 import { Select, SelectSection, SelectItem } from '@nextui-org/select'
 import InputElement from './elements/InputElement'
 import {
   tipoDocumento,
   canalContacto,
-  habitacionDisponible
+  habitacionDisponible,
+  tiposAlquiler
 } from './elements/dataOptions'
 import { Divider } from '@nextui-org/divider'
+import Datepicker from 'react-tailwindcss-datepicker'
+
+type DateType = Date | string | null
+interface DateRangeType {
+  startDate: DateType
+  endDate: DateType
+}
 
 export default function FormHsGolClient() {
   const [valueDocId, setValueDocId] = useState('')
   const [valueName, setValueName] = useState('')
   const [valueSecondName, setValueSecondName] = useState('')
+  const [valueDate, setValueDate] = useState<DateRangeType>({
+    startDate: null,
+    endDate: null
+  })
+
+  const handleValueChange = (
+    newValue: DateRangeType | null,
+    e?: HTMLInputElement | null
+  ) => {
+    if (newValue) {
+      console.log('newValue:', newValue)
+      setValueDate(newValue)
+    }
+  }
+
   const validateDNI = (value: string) => !!value.match(/^(?:\d{8})$/)
   const validateName = (value: string) =>
     !!value.match(/^[a-zA-Z]+(?:\s[a-zA-Z]+)*$/)
@@ -122,6 +145,24 @@ export default function FormHsGolClient() {
               radius='sm'
               labelPlacement='outside'
               variant='faded'
+              label='Tipo alquiler'
+              className='w-full'
+            >
+              {tiposAlquiler.map(tipoAlquiler => (
+                <SelectItem key={tipoAlquiler.value} value={tipoAlquiler.value}>
+                  {tipoAlquiler.label}
+                </SelectItem>
+              ))}
+            </Select>
+          </div>
+
+          <div className='sm:col-span-2'>
+            <Select
+              isRequired
+              size='md'
+              radius='sm'
+              labelPlacement='outside'
+              variant='faded'
               label='Habitación'
               className='w-full'
             >
@@ -135,9 +176,9 @@ export default function FormHsGolClient() {
 
           <div className='sm:col-span-2'>
             <InputElement
-              label='Fecha de ingreso'
+              label='Costo'
               type='number'
-              key='fechaIngreso'
+              key='costoHospedaje'
               valueDocId={valueName}
               setValueDocId={setValueName}
               isInvalid={isNameInvalid}
@@ -146,12 +187,41 @@ export default function FormHsGolClient() {
 
           <div className='sm:col-span-2'>
             <InputElement
-              label='Costo'
+              label='Cantidad de días'
               type='number'
-              key='costoHospedaje'
+              key='cantidadDias'
               valueDocId={valueName}
               setValueDocId={setValueName}
               isInvalid={isNameInvalid}
+            />
+          </div>
+
+          <div className='sm:col-span-4'>
+            <Datepicker
+              i18n={'es-mx'}
+              startWeekOn='mon'
+              primaryColor={'rose'}
+              useRange={false}
+              separator={'a'}
+              placeholder={'Fecha hospedaje'}
+              value={valueDate}
+              onChange={handleValueChange}
+              displayFormat={'DD-MM-YYYY'}
+              asSingle={true}
+              showFooter={false}
+              showShortcuts={true}
+              popoverDirection='down'
+              inputClassName='w-full rounded-md focus:ring-0 text-sm text-gray-600 bg-gray-50 border-gray-300 dark:bg-gray-800 dark:border-gray-70 dark:text-gray-10'
+              containerClassName='relative'
+              configs={{
+                shortcuts: {
+                  today: 'Hoy'
+                },
+                footer: {
+                  cancel: 'Cancelar',
+                  apply: 'Aceptar'
+                }
+              }}
             />
           </div>
         </div>

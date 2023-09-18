@@ -96,3 +96,21 @@ export const habitacionDisponible = [
     description: 'Habitación 206'
   }
 ]
+
+export const tiposAlquiler = [
+  {
+    label: 'Momentaneo',
+    value: 'momentaneo',
+    description: 'Alquiler Momentaneo'
+  },
+  {
+    label: 'Por noche',
+    value: 'porNoche',
+    description: 'Alquiler por noche'
+  },
+  {
+    label: 'Por mes',
+    value: 'porMes',
+    description: 'Alquiler por mes'
+  }
+]
