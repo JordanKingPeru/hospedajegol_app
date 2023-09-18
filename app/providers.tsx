@@ -3,7 +3,7 @@
 import { NextUIProvider } from '@nextui-org/react'
 import { ThemeProvider as NextThemesProvider } from 'next-themes'
 import { initializeApp } from 'firebase/app'
-import { getAnalytics } from 'firebase/analytics'
+
 const {
   APIKEY,
   AUTHDOMAIN,
@@ -26,7 +26,6 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   }
 
   const app = initializeApp(firebaseConfig)
-  const analytics = getAnalytics(app)
 
   return (
     <NextUIProvider>
