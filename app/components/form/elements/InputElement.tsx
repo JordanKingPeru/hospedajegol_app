@@ -8,6 +8,8 @@ interface InputElementProps {
   valueDocId: string
   setValueDocId: (value: string) => void
   isInvalid: boolean
+  mesageError?: string
+  isEndContent?: boolean
 }
 
 const InputElement: React.FC<InputElementProps> = ({
@@ -16,7 +18,9 @@ const InputElement: React.FC<InputElementProps> = ({
   key,
   valueDocId,
   setValueDocId,
-  isInvalid
+  isInvalid,
+  isEndContent = false,
+  mesageError = ''
 }) => {
   return (
     <>
@@ -39,9 +43,16 @@ const InputElement: React.FC<InputElementProps> = ({
             ? 'success'
             : undefined
         }
-        errorMessage={isInvalid ? 'Please enter a valid DNI' : ''}
+        errorMessage={isInvalid ? mesageError : ''}
         onClear={() => console.log('input cleared')}
         onValueChange={setValueDocId}
+        endContent={
+          isEndContent && (
+            <div className='pointer-events-none flex items-center'>
+              <span className='text-small text-default-400'>S/.</span>
+            </div>
+          )
+        }
         classNames={{
           input: ['border-0', 'focus:outline-none', 'focus:ring-0']
         }}

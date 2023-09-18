@@ -21,6 +21,8 @@ export default function FormHsGolClient() {
   const [valueDocId, setValueDocId] = useState('')
   const [valueName, setValueName] = useState('')
   const [valueSecondName, setValueSecondName] = useState('')
+  const [valuePrecio, setValuePrecio] = useState('')
+  const [valueCantidadDias, setValuePCantidadDias] = useState('')
   const [valueDate, setValueDate] = useState<DateRangeType>({
     startDate: null,
     endDate: null
@@ -40,6 +42,13 @@ export default function FormHsGolClient() {
   const validateName = (value: string) =>
     !!value.match(/^[a-zA-Z]+(?:\s[a-zA-Z]+)*$/)
 
+  // Validation function for the price
+  const validatePrecio = (value: string) =>
+    !!value.match(/^(0|[1-9]\d*)(\.\d)?$/)
+
+  // Validation function for the quantity of days
+  const validateCantidadDias = (value: string) => !!value.match(/^[1-9]\d*$/)
+
   const isDNIInvalid = useMemo(() => {
     if (valueDocId === '') return false
     return !validateDNI(valueDocId)
@@ -54,6 +63,18 @@ export default function FormHsGolClient() {
     if (valueSecondName === '') return false
     return !validateName(valueSecondName)
   }, [valueSecondName])
+
+  // useMemo hook to determine if the price is invalid
+  const isPrecioInvalid = useMemo(() => {
+    if (valuePrecio === '') return false
+    return !validatePrecio(valuePrecio)
+  }, [valuePrecio])
+
+  // useMemo hook to determine if the quantity of days is invalid
+  const isCantidadDiasInvalid = useMemo(() => {
+    if (valueCantidadDias === '') return false
+    return !validateCantidadDias(valueCantidadDias)
+  }, [valueCantidadDias])
 
   return (
     <form>
@@ -92,6 +113,7 @@ export default function FormHsGolClient() {
               valueDocId={valueDocId}
               setValueDocId={setValueDocId}
               isInvalid={isDNIInvalid}
+              mesageError={'DNI con 8 digitos numéricos'}
             />
           </div>
           <div className='sm:col-span-3'>
@@ -102,6 +124,7 @@ export default function FormHsGolClient() {
               valueDocId={valueName}
               setValueDocId={setValueName}
               isInvalid={isNameInvalid}
+              mesageError={'Sólo 1 espacio'}
             />
           </div>
 
@@ -113,6 +136,7 @@ export default function FormHsGolClient() {
               valueDocId={valueSecondName}
               setValueDocId={setValueSecondName}
               isInvalid={isSecondNameInvalid}
+              mesageError={'Sólo 1 espacio'}
             />
           </div>
 
@@ -179,9 +203,11 @@ export default function FormHsGolClient() {
               label='Costo'
               type='number'
               key='costoHospedaje'
-              valueDocId={valueName}
-              setValueDocId={setValueName}
-              isInvalid={isNameInvalid}
+              valueDocId={valuePrecio}
+              setValueDocId={setValuePrecio}
+              isInvalid={isPrecioInvalid}
+              isEndContent={true}
+              mesageError={'Precio con 1 decimal'}
             />
           </div>
 
@@ -190,9 +216,10 @@ export default function FormHsGolClient() {
               label='Cantidad de días'
               type='number'
               key='cantidadDias'
-              valueDocId={valueName}
-              setValueDocId={setValueName}
-              isInvalid={isNameInvalid}
+              valueDocId={valueCantidadDias}
+              setValueDocId={setValuePCantidadDias}
+              isInvalid={isCantidadDiasInvalid}
+              mesageError={'Días enteros'}
             />
           </div>
 
@@ -211,7 +238,7 @@ export default function FormHsGolClient() {
               showFooter={false}
               showShortcuts={true}
               popoverDirection='down'
-              inputClassName='w-full rounded-md focus:ring-0 text-sm text-gray-600 bg-gray-50 border-gray-300 dark:bg-gray-800 dark:border-gray-70 dark:text-gray-10'
+              inputClassName='w-full rounded-md focus:ring-0 text-sm text-gray-600 bg-gray-50 border-gray-300 dark:bg-gray-800 dark:border-gray-70 dark:text-gray-100'
               containerClassName='relative'
               configs={{
                 shortcuts: {
