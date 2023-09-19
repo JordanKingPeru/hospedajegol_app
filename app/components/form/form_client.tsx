@@ -24,10 +24,6 @@ import {
   arrayRemove
 } from 'firebase/firestore'
 
-const guardar = async () => {
-  const db = getFirestore()
-}
-
 type DateType = Date | string | null
 interface DateRangeType {
   startDate: DateType
@@ -35,6 +31,40 @@ interface DateRangeType {
 }
 
 export default function FormHsGolClient() {
+  const [valueRegistros, setValueRegistros] = useState([])
+  const [valueRegistrosRE, setValueRegistrosRE] = useState([])
+  const [viewState, setViewState] = useState('main')
+  const [editState, setEditState] = useState({})
+  const [nav, setNav] = useState('Identificación')
+
+  const nuevoRegistro = async () => {
+    const db = getFirestore()
+    const id = doc(collection(db, 'hospedaje'))
+    const key = (id as any)._key.path.segments[1]
+    const codigo = Math.random().toString(36).substring(2, 7).toUpperCase()
+    const content = {
+      key: key,
+      id: codigo,
+      docType: 'DNI',
+      docId: '12345678',
+      name: 'Juan',
+      secondName: 'Perez',
+      canalLlegada: 'Facebook',
+      bookingNumber: '1234567890',
+      tipoAlquiler: 'Momentaneo',
+      habitacion: '201',
+      precio: '100',
+      cantidadDias: '1',
+      fechaHospedaje: '28/09/2023'
+    }
+    try {
+      setEditState(content)
+      setViewState('edit')
+      await setDoc(id, content)
+    } catch (error) {
+      console.log(error)
+    }
+  }
   const [valueDocType, setValueDocType] = useState<Set<string>>(new Set())
   const [valueDocId, setValueDocId] = useState('')
   const [valueName, setValueName] = useState('')
@@ -329,7 +359,13 @@ export default function FormHsGolClient() {
         <Button color='default' size='sm' radius='sm' variant='flat'>
           Cancelar
         </Button>
-        <Button color='primary' size='sm' radius='sm' variant='solid'>
+        <Button
+          onClick={nuevoRegistro}
+          color='primary'
+          size='sm'
+          radius='sm'
+          variant='solid'
+        >
           Guardar
         </Button>
       </div>
