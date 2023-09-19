@@ -1,6 +1,6 @@
 import { Button } from '@nextui-org/button'
-import { SetStateAction, useMemo, useState, ChangeEvent } from 'react'
-import { Select, SelectSection, SelectItem } from '@nextui-org/select'
+import { useMemo, useState, ChangeEvent } from 'react'
+import { Select, SelectItem } from '@nextui-org/select'
 import InputElement from './elements/InputElement'
 import {
   tipoDocumento,
@@ -13,6 +13,7 @@ import Datepicker from 'react-tailwindcss-datepicker'
 import {
   getFirestore,
   doc,
+  Timestamp,
   onSnapshot,
   collection,
   getDocs,
@@ -21,7 +22,9 @@ import {
   serverTimestamp,
   deleteField,
   arrayUnion,
-  arrayRemove
+  arrayRemove,
+  query,
+  where
 } from 'firebase/firestore'
 
 type DateType = Date | string | null
@@ -30,53 +33,37 @@ interface DateRangeType {
   endDate: DateType
 }
 
-export default function FormHsGolClient() {
+type FormHsGolClientProps = {
+  valueIdClient: string
+  valueKeyClient: string
+}
+
+export default function FormHsGolClient({
+  valueIdClient,
+  valueKeyClient
+}: FormHsGolClientProps) {
   const [valueRegistros, setValueRegistros] = useState([])
   const [valueRegistrosRE, setValueRegistrosRE] = useState([])
   const [viewState, setViewState] = useState('main')
   const [editState, setEditState] = useState({})
   const [nav, setNav] = useState('Identificación')
 
-  const nuevoRegistro = async () => {
-    const db = getFirestore()
-    const id = doc(collection(db, 'hospedaje'))
-    const key = (id as any)._key.path.segments[1]
-    const codigo = Math.random().toString(36).substring(2, 7).toUpperCase()
-    const content = {
-      key: key,
-      id: codigo,
-      docType: 'DNI',
-      docId: '12345678',
-      name: 'Juan',
-      secondName: 'Perez',
-      canalLlegada: 'Facebook',
-      bookingNumber: '1234567890',
-      tipoAlquiler: 'Momentaneo',
-      habitacion: '201',
-      precio: '100',
-      cantidadDias: '1',
-      fechaHospedaje: '28/09/2023'
-    }
-    try {
-      setEditState(content)
-      setViewState('edit')
-      await setDoc(id, content)
-    } catch (error) {
-      console.log(error)
-    }
-  }
-  const [valueDocType, setValueDocType] = useState<Set<string>>(new Set())
+  type SelectType = { value: string; label: string }
+
+  const [valueDocType, setValueDocType] = useState<SelectType | null>(null)
   const [valueDocId, setValueDocId] = useState('')
   const [valueName, setValueName] = useState('')
   const [valueSecondName, setValueSecondName] = useState('')
-  const [valueCanalLlegada, setValueCanalLlegada] = useState<Set<string>>(
-    new Set()
+  const [valueCanalLlegada, setValueCanalLlegada] = useState<SelectType | null>(
+    null
   )
   const [valueBookingNumber, setValueBookingNumber] = useState('')
-  const [valueTipoAlquiler, setValueTipoAlquiler] = useState<Set<string>>(
-    new Set()
+  const [valueTipoAlquiler, setValueTipoAlquiler] = useState<SelectType | null>(
+    null
   )
-  const [valueHabitacion, setValueHabitacion] = useState<Set<string>>(new Set())
+  const [valueHabitacion, setValueHabitacion] = useState<SelectType | null>(
+    null
+  )
   const [valuePrecio, setValuePrecio] = useState('')
   const [valueCantidadDias, setValueCantidadDias] = useState('')
   const [valueDate, setValueDate] = useState<DateRangeType>({
@@ -85,19 +72,43 @@ export default function FormHsGolClient() {
   })
 
   const handleSelectionChangeDocType = (e: ChangeEvent<HTMLSelectElement>) => {
-    setValueDocType(new Set([e.target.value]))
+    const selectedDocType = tipoDocumento.find(
+      item => item.value === e.target.value
+    )
+
+    if (selectedDocType) {
+      setValueDocType(selectedDocType)
+    }
   }
 
   const handleSelectionChangeCanal = (e: ChangeEvent<HTMLSelectElement>) => {
-    setValueCanalLlegada(new Set([e.target.value]))
+    const selectedCanalLlegada = canalContacto.find(
+      item => item.value === e.target.value
+    )
+
+    if (selectedCanalLlegada) {
+      setValueCanalLlegada(selectedCanalLlegada)
+    }
   }
 
   const handleSelectionTipoAlquiler = (e: ChangeEvent<HTMLSelectElement>) => {
-    setValueTipoAlquiler(new Set([e.target.value]))
+    const selectedTipoAlquiler = tiposAlquiler.find(
+      item => item.value === e.target.value
+    )
+
+    if (selectedTipoAlquiler) {
+      setValueTipoAlquiler(selectedTipoAlquiler)
+    }
   }
 
   const handleSelectionHabitacion = (e: ChangeEvent<HTMLSelectElement>) => {
-    setValueHabitacion(new Set([e.target.value]))
+    const selectedHabitacion = habitacionDisponible.find(
+      item => item.value === e.target.value
+    )
+
+    if (selectedHabitacion) {
+      setValueHabitacion(selectedHabitacion)
+    }
   }
 
   const handleValueChange = (
@@ -154,11 +165,78 @@ export default function FormHsGolClient() {
     return !validateCantidadDias(valueCantidadDias)
   }, [valueCantidadDias])
 
+  // 1. Convert precio to a decimal number with one digit after the point.
+  const formattedPrecio = parseFloat(parseFloat(valuePrecio).toFixed(1))
+
+  // 2. Convert cantidadDias to an integer.
+  const formattedCantidadDias = parseInt(valueCantidadDias, 10)
+
+  // 3. Convert fechaHospedaje from 'DD/MM/YYYY' to a timestamp.
+  const getFirebaseTimestamp = (date: DateType): Timestamp | null => {
+    if (typeof date !== 'string') return null
+
+    const [year, month, day] = date.split('-')
+    // Ensure that day, month, and year are all available
+    if (!day || !month || !year) return null
+
+    // Create a new JavaScript Date object
+    const jsDate = new Date(
+      parseInt(year, 10),
+      parseInt(month, 10) - 1,
+      parseInt(day, 10)
+    )
+
+    // Check if the date is valid
+    if (isNaN(jsDate.getTime())) return null
+
+    return Timestamp.fromDate(jsDate)
+  }
+
+  const formattedFechaHospedaje = getFirebaseTimestamp(valueDate?.startDate)
+
+  // 4. Convert name and secondName so that each word starts with an uppercase letter.
+  const formatName = (str: string) => {
+    return str
+      .toLowerCase()
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ')
+  }
+
+  const formattedName = formatName(valueName)
+  const formattedSecondName = formatName(valueSecondName)
+
+  const content = {
+    key: valueKeyClient,
+    id: valueIdClient,
+    docType: valueDocType?.label,
+    docId: valueDocId,
+    name: formattedName,
+    secondName: formattedSecondName,
+    canalLlegada: valueCanalLlegada?.label,
+    bookingNumber: valueBookingNumber,
+    tipoAlquiler: valueTipoAlquiler?.label,
+    habitacion: valueHabitacion?.label,
+    precio: formattedPrecio,
+    cantidadDias: formattedCantidadDias,
+    fechaHospedaje: formattedFechaHospedaje
+  }
+
+  const guardar = async () => {
+    const db = getFirestore()
+    const id = doc(collection(db, 'hospedaje'), valueKeyClient)
+    try {
+      await updateDoc(id, content)
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
   return (
     <form>
       <div className='border-b pb-12'>
         <h2 className='text-base font-semibold leading-7 text-gray-900 dark:text-gray-50'>
-          Registro de cliente
+          Registro de cliente: {valueIdClient}
         </h2>
         <p className='mt-1 text-sm leading-6 text-gray-600 dark:text-gray-100'>
           Registrar los datos del cliente y la habitación.
@@ -174,7 +252,7 @@ export default function FormHsGolClient() {
               variant='faded'
               label='Tipo documento'
               className='w-full'
-              selectedKeys={valueDocType}
+              selectedKeys={valueDocType ? [valueDocType.value] : []}
               onChange={handleSelectionChangeDocType}
             >
               {tipoDocumento.map(tipDoc => (
@@ -228,7 +306,7 @@ export default function FormHsGolClient() {
               variant='faded'
               label='¿Cómo conoció HS Gol?'
               className='w-full'
-              selectedKeys={valueCanalLlegada}
+              selectedKeys={valueCanalLlegada ? [valueCanalLlegada.value] : []}
               onChange={handleSelectionChangeCanal}
             >
               {canalContacto.map(canal => (
@@ -238,7 +316,7 @@ export default function FormHsGolClient() {
               ))}
             </Select>
             <p className='text-small text-default-500'>
-              Selected: {valueCanalLlegada}
+              Selected: {valueCanalLlegada?.label}
             </p>
           </div>
 
@@ -267,7 +345,7 @@ export default function FormHsGolClient() {
               variant='faded'
               label='Tipo alquiler'
               className='w-full'
-              selectedKeys={valueTipoAlquiler}
+              selectedKeys={valueTipoAlquiler ? [valueTipoAlquiler.value] : []}
               onChange={handleSelectionTipoAlquiler}
             >
               {tiposAlquiler.map(tipoAlquiler => (
@@ -287,7 +365,7 @@ export default function FormHsGolClient() {
               variant='faded'
               label='Habitación'
               className='w-full'
-              selectedKeys={valueHabitacion}
+              selectedKeys={valueHabitacion ? [valueHabitacion.value] : []}
               onChange={handleSelectionHabitacion}
             >
               {habitacionDisponible.map(habitacion => (
@@ -360,11 +438,11 @@ export default function FormHsGolClient() {
           Cancelar
         </Button>
         <Button
-          onClick={nuevoRegistro}
           color='primary'
           size='sm'
           radius='sm'
           variant='solid'
+          onClick={() => guardar()}
         >
           Guardar
         </Button>

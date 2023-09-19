@@ -2,7 +2,7 @@
 
 import { Tabs, Tab } from '@nextui-org/react'
 import FormHsGol from './components/form/formulario'
-import React from 'react'
+import { useState } from 'react'
 import { Card, CardBody } from '@nextui-org/react'
 import {
   UserIcon,
@@ -10,11 +10,85 @@ import {
   HomeModernIcon
 } from '@heroicons/react/24/solid'
 import FormHsGolClient from './components/form/form_client'
+import DashboardHsGol from './components/dashboard/dashboard'
+import {
+  collection,
+  doc,
+  getDocs,
+  getFirestore,
+  query,
+  setDoc,
+  updateDoc,
+  where
+} from 'firebase/firestore'
 
 export default function Home() {
+  const [valueViewState, setValueViewState] = useState<string>('reporte')
+
+  const [valueKeyClient, setValueKeyClient] = useState('')
+  const [valueIdClient, setValueIdClient] = useState('')
+
+  const nuevoRegistro = async () => {
+    const db = getFirestore()
+    const hospedajeCollection = collection(db, 'hospedaje')
+
+    // Hacer una consulta para encontrar el documento con docId: "21061991"
+    const q = query(hospedajeCollection, where('docId', '==', '21061991'))
+    const querySnapshot = await getDocs(q)
+
+    const codigo = Math.random().toString(36).substring(2, 7).toUpperCase()
+
+    let content: { key?: string; id: string; docId: string }
+
+    if (!querySnapshot.empty) {
+      // Si existe un documento con docId: "21061991", actualizamos
+      const documentSnapshot = querySnapshot.docs[0]
+      const docIdToUpdate = documentSnapshot.id
+      const dataSnapshot = documentSnapshot.data()
+      setValueKeyClient(dataSnapshot.key)
+      setValueIdClient(dataSnapshot.id)
+      content = {
+        id: valueIdClient,
+        docId: '21061991'
+      }
+      await updateDoc(doc(hospedajeCollection, docIdToUpdate), content)
+    } else {
+      // Si no existe, creamos uno nuevo
+      const id = doc(hospedajeCollection)
+      const key = (id as any)._key.path.segments[1]
+      setValueIdClient(codigo)
+      setValueKeyClient(key)
+      content = {
+        key: key,
+        id: codigo,
+        docId: '21061991'
+      }
+      await setDoc(id, content)
+    }
+  }
+
+  const handleNewClient = () => {
+    setValueViewState('cliente')
+  }
+
+  const handleTabChange = (event: React.FormEvent<HTMLDivElement>) => {
+    const selectedKey = (event.target as HTMLDivElement).dataset.key
+    if (selectedKey) {
+      setValueViewState(selectedKey)
+    }
+  }
+
+  type Key = string | number
+
+  const handleSelectionChange = (selectedKey: Key) => {
+    if (typeof selectedKey === 'string') {
+      setValueViewState(selectedKey)
+    }
+  }
+
   let tabs = [
     {
-      id: 'dashboard',
+      id: 'reporte',
       label: 'Reporte',
       icon: (
         <PresentationChartBarIcon
@@ -22,8 +96,12 @@ export default function Home() {
           aria-hidden='true'
         />
       ),
-      content:
-        'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.'
+      content: (
+        <DashboardHsGol
+          onNewClient={handleNewClient}
+          nuevoRegistro={nuevoRegistro}
+        />
+      )
     },
     {
       id: 'cliente',
@@ -34,7 +112,12 @@ export default function Home() {
           aria-hidden='true'
         />
       ),
-      content: <FormHsGolClient />
+      content: (
+        <FormHsGolClient
+          valueIdClient={valueIdClient}
+          valueKeyClient={valueKeyClient}
+        />
+      )
     },
     {
       id: 'habitacion',
@@ -48,6 +131,7 @@ export default function Home() {
       content: <FormHsGol />
     }
   ]
+
   return (
     <section id='habitacionDisponible' className='py-10'>
       <div className='container flex items-center justify-center '>
@@ -59,6 +143,9 @@ export default function Home() {
             color='primary'
             variant='bordered'
             items={tabs}
+            selectedKey={valueViewState}
+            onSelectionChange={handleSelectionChange}
+            disabledKeys={valueViewState === 'reporte' ? ['cliente'] : []}
           >
             {item => (
               <Tab
