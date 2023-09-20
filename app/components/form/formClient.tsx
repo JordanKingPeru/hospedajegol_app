@@ -6,7 +6,8 @@ import {
   tipoDocumento,
   canalContacto,
   habitacionDisponible,
-  tiposAlquiler
+  tiposAlquiler,
+  rellenadoPor
 } from './elements/dataOptions'
 import { Divider } from '@nextui-org/divider'
 import Datepicker from 'react-tailwindcss-datepicker'
@@ -14,17 +15,9 @@ import {
   getFirestore,
   doc,
   Timestamp,
-  onSnapshot,
   collection,
-  getDocs,
-  setDoc,
   updateDoc,
-  serverTimestamp,
-  deleteField,
-  arrayUnion,
-  arrayRemove,
-  query,
-  where
+  serverTimestamp
 } from 'firebase/firestore'
 
 type DateType = Date | string | null
@@ -36,11 +29,15 @@ interface DateRangeType {
 type FormHsGolClientProps = {
   valueIdClient: string
   valueKeyClient: string
+  handleDetalle: () => void
+  handleReporte: () => void
 }
 
 export default function FormHsGolClient({
   valueIdClient,
-  valueKeyClient
+  valueKeyClient,
+  handleDetalle,
+  handleReporte
 }: FormHsGolClientProps) {
   const [valueRegistros, setValueRegistros] = useState([])
   const [valueRegistrosRE, setValueRegistrosRE] = useState([])
@@ -50,6 +47,9 @@ export default function FormHsGolClient({
 
   type SelectType = { value: string; label: string }
 
+  const [valueRellenadoPor, setValueRellenadoPor] = useState<SelectType | null>(
+    null
+  )
   const [valueDocType, setValueDocType] = useState<SelectType | null>(null)
   const [valueDocId, setValueDocId] = useState('')
   const [valueName, setValueName] = useState('')
@@ -65,11 +65,24 @@ export default function FormHsGolClient({
     null
   )
   const [valuePrecio, setValuePrecio] = useState('')
+  const [valueCantidadPersonas, setValueCantidadPersonas] = useState('')
   const [valueCantidadDias, setValueCantidadDias] = useState('')
   const [valueDate, setValueDate] = useState<DateRangeType>({
     startDate: null,
     endDate: null
   })
+
+  const handleSelectionChangeRellenadoPor = (
+    e: ChangeEvent<HTMLSelectElement>
+  ) => {
+    const selectedRellenadoPor = rellenadoPor.find(
+      item => item.value === e.target.value
+    )
+
+    if (selectedRellenadoPor) {
+      setValueRellenadoPor(selectedRellenadoPor)
+    }
+  }
 
   const handleSelectionChangeDocType = (e: ChangeEvent<HTMLSelectElement>) => {
     const selectedDocType = tipoDocumento.find(
@@ -209,8 +222,9 @@ export default function FormHsGolClient({
   const content = {
     key: valueKeyClient,
     id: valueIdClient,
+    rellenadoPor: valueRellenadoPor?.label,
     docType: valueDocType?.label,
-    docId: valueDocId,
+    docId: valueDocId === '' ? '21061991' : valueDocId,
     name: formattedName,
     secondName: formattedSecondName,
     canalLlegada: valueCanalLlegada?.label,
@@ -218,8 +232,10 @@ export default function FormHsGolClient({
     tipoAlquiler: valueTipoAlquiler?.label,
     habitacion: valueHabitacion?.label,
     precio: formattedPrecio,
+    cantidadPersonas: valueCantidadPersonas,
     cantidadDias: formattedCantidadDias,
-    fechaHospedaje: formattedFechaHospedaje
+    fechaHospedaje: formattedFechaHospedaje,
+    fechaRegistro: serverTimestamp()
   }
 
   const guardar = async () => {
@@ -234,15 +250,35 @@ export default function FormHsGolClient({
 
   return (
     <form>
-      <div className='border-b pb-12'>
-        <h2 className='text-base font-semibold leading-7 text-gray-900 dark:text-gray-50'>
-          Registro de cliente: {valueIdClient}
-        </h2>
-        <p className='mt-1 text-sm leading-6 text-gray-600 dark:text-gray-100'>
-          Registrar los datos del cliente y la habitación.
-        </p>
-
-        <div className='mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6'>
+      <div className='border-b pb-10'>
+        <div className='mt-5 grid grid-cols-1 gap-x-6 gap-y-8 pt-5 sm:grid-cols-6'>
+          <div className='-pt-10 sm:col-span-3'>
+            <h2 className='font-semibold text-gray-900 dark:text-gray-50'>
+              Registro de cliente: {valueIdClient}
+            </h2>
+            <p className='leading-1 mt-1 pb-5 text-sm text-gray-600 dark:text-gray-100'>
+              Registrar los datos del cliente y la habitación.
+            </p>
+          </div>
+          <div className='sm:col-span-3'>
+            <Select
+              isRequired
+              size='md'
+              radius='sm'
+              labelPlacement='outside'
+              variant='faded'
+              label='Rellenado por:'
+              className='w-full'
+              selectedKeys={valueRellenadoPor ? [valueRellenadoPor.value] : []}
+              onChange={handleSelectionChangeRellenadoPor}
+            >
+              {rellenadoPor.map(rellenado => (
+                <SelectItem key={rellenado.value} value={rellenado.value}>
+                  {rellenado.label}
+                </SelectItem>
+              ))}
+            </Select>
+          </div>
           <div className='sm:col-span-3'>
             <Select
               isRequired
@@ -389,7 +425,17 @@ export default function FormHsGolClient({
             />
           </div>
 
-          <div className='sm:col-span-2'>
+          <div className='sm:col-span-1'>
+            <InputElement
+              label='Cantidad personas'
+              type='number'
+              key='cantidadPersonas'
+              valueDocId={valueCantidadPersonas}
+              setValueDocId={setValueCantidadPersonas}
+            />
+          </div>
+
+          <div className='sm:col-span-1'>
             <InputElement
               label='Cantidad de días'
               type='number'
@@ -434,7 +480,15 @@ export default function FormHsGolClient({
       </div>
 
       <div className='mt-6 flex items-center justify-end gap-x-6'>
-        <Button color='default' size='sm' radius='sm' variant='flat'>
+        <Button
+          color='default'
+          size='sm'
+          radius='sm'
+          variant='flat'
+          onClick={() => {
+            handleReporte()
+          }}
+        >
           Cancelar
         </Button>
         <Button
@@ -442,7 +496,10 @@ export default function FormHsGolClient({
           size='sm'
           radius='sm'
           variant='solid'
-          onClick={() => guardar()}
+          onClick={() => {
+            guardar()
+            handleDetalle()
+          }}
         >
           Guardar
         </Button>

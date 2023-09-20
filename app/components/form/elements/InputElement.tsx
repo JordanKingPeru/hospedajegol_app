@@ -7,7 +7,7 @@ interface InputElementProps {
   key: string
   valueDocId: string
   setValueDocId: (value: string) => void
-  isInvalid: boolean
+  isInvalid?: boolean
   mesageError?: string
   isEndContent?: boolean
   defaultValue?: string

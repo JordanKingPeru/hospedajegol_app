@@ -1,16 +1,12 @@
 'use client'
 
-import { Tabs, Tab } from '@nextui-org/react'
-import FormHsGol from './components/form/formulario'
-import { useState } from 'react'
-import { Card, CardBody } from '@nextui-org/react'
+// External imports
+import { Tabs, Tab, Card, CardBody } from '@nextui-org/react'
 import {
   UserIcon,
   PresentationChartBarIcon,
   HomeModernIcon
 } from '@heroicons/react/24/solid'
-import FormHsGolClient from './components/form/form_client'
-import DashboardHsGol from './components/dashboard/dashboard'
 import {
   collection,
   doc,
@@ -21,13 +17,20 @@ import {
   updateDoc,
   where
 } from 'firebase/firestore'
+import { useState } from 'react'
+
+// Internal imports
+import FormHsGol from './components/form/resultForm'
+import FormHsGolClient from './components/form/formClient'
+import DashboardHsGol from './components/dashboard/dashboard'
 
 export default function Home() {
+  // State hooks
   const [valueViewState, setValueViewState] = useState<string>('reporte')
-
   const [valueKeyClient, setValueKeyClient] = useState('')
   const [valueIdClient, setValueIdClient] = useState('')
 
+  // Helper functions
   const nuevoRegistro = async () => {
     const db = getFirestore()
     const hospedajeCollection = collection(db, 'hospedaje')
@@ -49,7 +52,8 @@ export default function Home() {
       setValueIdClient(dataSnapshot.id)
       content = {
         id: valueIdClient,
-        docId: '21061991'
+        docId: '21061991',
+        key: valueKeyClient
       }
       await updateDoc(doc(hospedajeCollection, docIdToUpdate), content)
     } else {
@@ -69,6 +73,14 @@ export default function Home() {
 
   const handleNewClient = () => {
     setValueViewState('cliente')
+  }
+
+  const handleDetalle = () => {
+    setValueViewState('detalle')
+  }
+
+  const handleReporte = () => {
+    setValueViewState('reporte')
   }
 
   const handleTabChange = (event: React.FormEvent<HTMLDivElement>) => {
@@ -116,12 +128,14 @@ export default function Home() {
         <FormHsGolClient
           valueIdClient={valueIdClient}
           valueKeyClient={valueKeyClient}
+          handleDetalle={handleDetalle}
+          handleReporte={handleReporte}
         />
       )
     },
     {
-      id: 'habitacion',
-      label: 'Habitación',
+      id: 'detalle',
+      label: 'Detalle',
       icon: (
         <HomeModernIcon
           className='text-white-200 mx-auto h-6 w-6'
@@ -131,6 +145,19 @@ export default function Home() {
       content: <FormHsGol />
     }
   ]
+
+  const getDisabledKeys = (currentView: string): string[] => {
+    switch (currentView) {
+      case 'reporte':
+        return ['cliente', 'detalle']
+      case 'cliente':
+        return ['reporte', 'detalle']
+      case 'detalle':
+        return ['reporte', 'cliente']
+      default:
+        return []
+    }
+  }
 
   return (
     <section id='habitacionDisponible' className='py-10'>
@@ -145,7 +172,7 @@ export default function Home() {
             items={tabs}
             selectedKey={valueViewState}
             onSelectionChange={handleSelectionChange}
-            disabledKeys={valueViewState === 'reporte' ? ['cliente'] : []}
+            disabledKeys={getDisabledKeys(valueViewState)}
           >
             {item => (
               <Tab

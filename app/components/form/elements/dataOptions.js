@@ -16,6 +16,34 @@ export const tipoDocumento = [
   }
 ]
 
+export const rellenadoPor = [
+  {
+    label: 'Victor Rodriguez',
+    value: 'VictorRodriguez',
+    description: 'Victor Rodriguez'
+  },
+  {
+    label: 'Rosa Mallqui',
+    value: 'rosaMallqui',
+    description: 'Rosa Mallqui'
+  },
+  {
+    label: 'Jahir Rodriguez',
+    value: 'jahirRodriguez',
+    description: 'Jahir Rodriguez'
+  },
+  {
+    label: 'Maycol Rodriguez',
+    value: 'maycolRodriguez',
+    description: 'Maycol Rodriguez'
+  },
+  {
+    label: 'Jordan Rodriguez',
+    value: 'jordanRodriguez',
+    description: 'Jordan Rodriguez'
+  }
+]
+
 export const canalContacto = [
   {
     label: 'Facebook',
