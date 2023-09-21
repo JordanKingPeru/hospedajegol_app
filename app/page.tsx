@@ -1,6 +1,7 @@
 'use client'
 
 // External imports
+import { useState, useEffect } from 'react'
 import { Tabs, Tab, Card, CardBody } from '@nextui-org/react'
 import {
   UserIcon,
@@ -17,21 +18,45 @@ import {
   updateDoc,
   where
 } from 'firebase/firestore'
-import { useState } from 'react'
 
 // Internal imports
 import FormHsGol from './components/form/resultForm'
 import FormHsGolClient from './components/form/formClient'
 import DashboardHsGol from './components/dashboard/dashboard'
+import FormHsGolClientSkeleton from './components/form/formClientSkeleton'
 
 export default function Home() {
   // State hooks
   const [valueViewState, setValueViewState] = useState<string>('reporte')
   const [valueKeyClient, setValueKeyClient] = useState('')
   const [valueIdClient, setValueIdClient] = useState('')
+  const [isContentReady, setIsContentReady] = useState(false)
+  const [valueContent, setValueContent] = useState('')
+  const [loading, setLoading] = useState(false)
 
+  // useEffect to watch for changes in valueContent
+  useEffect(() => {
+    if (valueContent) {
+      setIsContentReady(true)
+    }
+  }, [valueContent])
+
+  // Define a function to determine which tabs to disable based on the current view
+  const getDisabledKeys = (currentView: string): string[] => {
+    switch (currentView) {
+      case 'reporte':
+        return ['cliente', 'detalle']
+      case 'cliente':
+        return ['reporte', 'detalle']
+      case 'detalle':
+        return ['reporte', 'cliente']
+      default:
+        return []
+    }
+  }
   // Helper functions
   const nuevoRegistro = async () => {
+    setLoading(true) // Iniciar el estado de carga
     const db = getFirestore()
     const hospedajeCollection = collection(db, 'hospedaje')
 
@@ -55,6 +80,7 @@ export default function Home() {
         docId: '21061991',
         key: valueKeyClient
       }
+      setValueContent(JSON.stringify(content))
       await updateDoc(doc(hospedajeCollection, docIdToUpdate), content)
     } else {
       // Si no existe, creamos uno nuevo
@@ -63,16 +89,21 @@ export default function Home() {
       setValueIdClient(codigo)
       setValueKeyClient(key)
       content = {
-        key: key,
-        id: codigo,
+        key: valueKeyClient,
+        id: valueIdClient,
         docId: '21061991'
       }
+      setValueContent(JSON.stringify(content))
       await setDoc(id, content)
     }
+    setLoading(false) // Finalizar el estado de carga una vez que se complete todo
   }
 
   const handleNewClient = () => {
-    setValueViewState('cliente')
+    if (isContentReady) {
+      // Now it's safe to use valueContent
+      setValueViewState('cliente')
+    }
   }
 
   const handleDetalle = () => {
@@ -124,10 +155,13 @@ export default function Home() {
           aria-hidden='true'
         />
       ),
-      content: (
+      content: loading ? (
+        <FormHsGolClientSkeleton /> // Componente de carga/esqueleto. Deberías tener uno o importar uno que te guste.
+      ) : (
         <FormHsGolClient
           valueIdClient={valueIdClient}
           valueKeyClient={valueKeyClient}
+          valueContent={valueContent}
           handleDetalle={handleDetalle}
           handleReporte={handleReporte}
         />
@@ -145,19 +179,6 @@ export default function Home() {
       content: <FormHsGol />
     }
   ]
-
-  const getDisabledKeys = (currentView: string): string[] => {
-    switch (currentView) {
-      case 'reporte':
-        return ['cliente', 'detalle']
-      case 'cliente':
-        return ['reporte', 'detalle']
-      case 'detalle':
-        return ['reporte', 'cliente']
-      default:
-        return []
-    }
-  }
 
   return (
     <section id='habitacionDisponible' className='py-10'>

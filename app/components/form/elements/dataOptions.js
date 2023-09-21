@@ -16,6 +16,34 @@ export const tipoDocumento = [
   }
 ]
 
+export const medioPago = [
+  {
+    label: 'Efectivo',
+    value: 'efectivo',
+    description: 'Efectivo'
+  },
+  {
+    label: 'Tarjeta de Crédito',
+    value: 'tarjetaCredito',
+    description: 'Tarjeta de Crédito'
+  },
+  {
+    label: 'Tarjeta de Débito',
+    value: 'tarjetaDebito',
+    description: 'Tarjeta de Débito'
+  },
+  {
+    label: 'Yape o Plin',
+    value: 'yapePlin',
+    description: 'Yape o Plin'
+  },
+  {
+    label: 'Transferencia Bancaria',
+    value: 'transferenciaBancaria',
+    description: 'Transferencia Bancaria'
+  }
+]
+
 export const rellenadoPor = [
   {
     label: 'Victor Rodriguez',

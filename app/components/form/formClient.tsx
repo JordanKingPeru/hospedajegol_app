@@ -7,7 +7,8 @@ import {
   canalContacto,
   habitacionDisponible,
   tiposAlquiler,
-  rellenadoPor
+  rellenadoPor,
+  medioPago
 } from './elements/dataOptions'
 import { Divider } from '@nextui-org/divider'
 import Datepicker from 'react-tailwindcss-datepicker'
@@ -29,6 +30,7 @@ interface DateRangeType {
 type FormHsGolClientProps = {
   valueIdClient: string
   valueKeyClient: string
+  valueContent: string
   handleDetalle: () => void
   handleReporte: () => void
 }
@@ -36,9 +38,14 @@ type FormHsGolClientProps = {
 export default function FormHsGolClient({
   valueIdClient,
   valueKeyClient,
+  valueContent,
   handleDetalle,
   handleReporte
 }: FormHsGolClientProps) {
+  const parsedContent = JSON.parse(valueContent)
+  const contentKey = parsedContent.key
+  console.log('valueContent:', valueContent)
+  console.log('valueContent:', contentKey)
   const [valueRegistros, setValueRegistros] = useState([])
   const [valueRegistrosRE, setValueRegistrosRE] = useState([])
   const [viewState, setViewState] = useState('main')
@@ -64,9 +71,10 @@ export default function FormHsGolClient({
   const [valueHabitacion, setValueHabitacion] = useState<SelectType | null>(
     null
   )
+  const [valueMedioPago, setValueMedioPago] = useState<SelectType | null>(null)
   const [valuePrecio, setValuePrecio] = useState('')
-  const [valueCantidadPersonas, setValueCantidadPersonas] = useState('')
-  const [valueCantidadDias, setValueCantidadDias] = useState('')
+  const [valueCantidadPersonas, setValueCantidadPersonas] = useState('1')
+  const [valueCantidadDias, setValueCantidadDias] = useState('1')
   const [valueDate, setValueDate] = useState<DateRangeType>({
     startDate: null,
     endDate: null
@@ -121,6 +129,16 @@ export default function FormHsGolClient({
 
     if (selectedHabitacion) {
       setValueHabitacion(selectedHabitacion)
+    }
+  }
+
+  const handleSelectionMedioPago = (e: ChangeEvent<HTMLSelectElement>) => {
+    const selectedMedioPago = medioPago.find(
+      item => item.value === e.target.value
+    )
+
+    if (selectedMedioPago) {
+      setValueMedioPago(selectedMedioPago)
     }
   }
 
@@ -231,6 +249,7 @@ export default function FormHsGolClient({
     bookingNumber: valueBookingNumber,
     tipoAlquiler: valueTipoAlquiler?.label,
     habitacion: valueHabitacion?.label,
+    medioDePago: valueMedioPago?.label,
     precio: formattedPrecio,
     cantidadPersonas: valueCantidadPersonas,
     cantidadDias: formattedCantidadDias,
@@ -251,8 +270,8 @@ export default function FormHsGolClient({
   return (
     <form>
       <div className='border-b pb-10'>
-        <div className='mt-5 grid grid-cols-1 gap-x-6 gap-y-8 pt-5 sm:grid-cols-6'>
-          <div className='-pt-10 sm:col-span-3'>
+        <div className='mt-5 grid grid-cols-1 gap-x-6 gap-y-8 pt-5 sm:grid-cols-9'>
+          <div className='sm:col-span-8'>
             <h2 className='font-semibold text-gray-900 dark:text-gray-50'>
               Registro de cliente: {valueIdClient}
             </h2>
@@ -309,7 +328,7 @@ export default function FormHsGolClient({
               mesageError={'DNI con 8 digitos numéricos'}
             />
           </div>
-          <div className='sm:col-span-3'>
+          <div className='sm:col-span-4'>
             <InputElement
               label='Nombre'
               type='text'
@@ -321,7 +340,7 @@ export default function FormHsGolClient({
             />
           </div>
 
-          <div className='sm:col-span-3'>
+          <div className='sm:col-span-5'>
             <InputElement
               label='Apellido'
               type='text'
@@ -333,7 +352,7 @@ export default function FormHsGolClient({
             />
           </div>
 
-          <div className='sm:col-span-3'>
+          <div className='sm:col-span-4'>
             <Select
               isRequired
               size='md'
@@ -356,7 +375,7 @@ export default function FormHsGolClient({
             </p>
           </div>
 
-          <div className='sm:col-span-3'>
+          <div className='sm:col-span-5'>
             <InputElement
               label='Código reserva (Booking number)'
               type='text'
@@ -369,10 +388,10 @@ export default function FormHsGolClient({
           </div>
 
           <div className='col-span-full'>
-            <Divider className='my-4' />
+            <Divider className='my-2' />
           </div>
 
-          <div className='sm:col-span-2 sm:col-start-1'>
+          <div className='sm:col-span-3 sm:col-start-1'>
             <Select
               isRequired
               size='md'
@@ -414,19 +433,6 @@ export default function FormHsGolClient({
 
           <div className='sm:col-span-2'>
             <InputElement
-              label='Precio'
-              type='number'
-              key='costoHospedaje'
-              valueDocId={valuePrecio}
-              setValueDocId={setValuePrecio}
-              isInvalid={isPrecioInvalid}
-              isEndContent={true}
-              mesageError={'Precio con 1 decimal'}
-            />
-          </div>
-
-          <div className='sm:col-span-1'>
-            <InputElement
               label='Cantidad personas'
               type='number'
               key='cantidadPersonas'
@@ -435,7 +441,7 @@ export default function FormHsGolClient({
             />
           </div>
 
-          <div className='sm:col-span-1'>
+          <div className='sm:col-span-2'>
             <InputElement
               label='Cantidad de días'
               type='number'
@@ -445,6 +451,43 @@ export default function FormHsGolClient({
               isInvalid={isCantidadDiasInvalid}
               mesageError={'Días enteros'}
               defaultValue={'1'}
+            />
+          </div>
+
+          <div className='col-span-full'>
+            <Divider className='my-2' />
+          </div>
+
+          <div className='sm:col-span-3'>
+            <Select
+              isRequired
+              size='md'
+              radius='sm'
+              labelPlacement='outside'
+              variant='faded'
+              label='Medio de pago'
+              className='w-full'
+              selectedKeys={valueMedioPago ? [valueMedioPago.value] : []}
+              onChange={handleSelectionMedioPago}
+            >
+              {medioPago.map(medio => (
+                <SelectItem key={medio.value} value={medio.value}>
+                  {medio.label}
+                </SelectItem>
+              ))}
+            </Select>
+          </div>
+
+          <div className='sm:col-span-2'>
+            <InputElement
+              label='Precio'
+              type='number'
+              key='costoHospedaje'
+              valueDocId={valuePrecio}
+              setValueDocId={setValuePrecio}
+              isInvalid={isPrecioInvalid}
+              isEndContent={true}
+              mesageError={'Precio con 1 decimal'}
             />
           </div>
 
