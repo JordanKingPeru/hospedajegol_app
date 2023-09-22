@@ -2,7 +2,7 @@
 
 // External imports
 import { useState, useEffect } from 'react'
-import { Tabs, Tab, Card, CardBody } from '@nextui-org/react'
+import { Tabs, Tab, Card, CardBody, Button } from '@nextui-org/react'
 import {
   UserIcon,
   PresentationChartBarIcon,
@@ -34,13 +34,6 @@ export default function Home() {
   const [valueContent, setValueContent] = useState('')
   const [loading, setLoading] = useState(false)
 
-  // useEffect to watch for changes in valueContent
-  useEffect(() => {
-    if (valueContent) {
-      setIsContentReady(true)
-    }
-  }, [valueContent])
-
   // Define a function to determine which tabs to disable based on the current view
   const getDisabledKeys = (currentView: string): string[] => {
     switch (currentView) {
@@ -56,7 +49,12 @@ export default function Home() {
   }
   // Helper functions
   const nuevoRegistro = async () => {
-    setLoading(true) // Iniciar el estado de carga
+    console.log('Inicio de nuevoRegistro')
+    setLoading(true)
+
+    // Cambia la vista aquí
+    setValueViewState('cliente') // Iniciar el estado de carga
+
     const db = getFirestore()
     const hospedajeCollection = collection(db, 'hospedaje')
 
@@ -66,44 +64,91 @@ export default function Home() {
 
     const codigo = Math.random().toString(36).substring(2, 7).toUpperCase()
 
-    let content: { key?: string; id: string; docId: string }
+    console.log('querySnapshot:', querySnapshot)
 
     if (!querySnapshot.empty) {
+      console.log('Documento encontrado con docId: 21061991')
       // Si existe un documento con docId: "21061991", actualizamos
       const documentSnapshot = querySnapshot.docs[0]
       const docIdToUpdate = documentSnapshot.id
       const dataSnapshot = documentSnapshot.data()
-      setValueKeyClient(dataSnapshot.key)
-      setValueIdClient(dataSnapshot.id)
-      content = {
-        id: valueIdClient,
+
+      console.log('dataSnapshot:', dataSnapshot)
+
+      const updatedKeyClient = dataSnapshot.key
+      const updatedIdClient = dataSnapshot.id
+
+      setValueKeyClient(updatedKeyClient)
+      setValueIdClient(updatedIdClient)
+      const content = {
+        key: dataSnapshot.key,
+        id: dataSnapshot.id,
         docId: '21061991',
-        key: valueKeyClient
+        rellenadoPor: dataSnapshot.rellenadoPor,
+        docType: dataSnapshot.docType,
+        name: dataSnapshot.name,
+        secondName: dataSnapshot.secondName,
+        canalLlegada: dataSnapshot.canalLlegada,
+        bookingNumber: dataSnapshot.bookingNumber,
+        tipoAlquiler: dataSnapshot.tipoAlquiler,
+        habitacion: dataSnapshot.habitacion,
+        medioDePago: dataSnapshot.medioDePago,
+        precio: dataSnapshot.precio,
+        cantidadPersonas: dataSnapshot.cantidadPersonas,
+        cantidadDias: dataSnapshot.cantidadDias,
+        fechaHospedaje: dataSnapshot.fechaHospedaje,
+        fechaRegistro: dataSnapshot.fechaRegistro
       }
-      setValueContent(JSON.stringify(content))
-      await updateDoc(doc(hospedajeCollection, docIdToUpdate), content)
+      const contentStr = JSON.stringify(content)
+      setValueContent(contentStr)
+      if (contentStr) {
+        setIsContentReady(true)
+      }
+
+      await updateDoc(doc(hospedajeCollection, updatedKeyClient), content)
+      console.log('content existente:', content)
     } else {
+      console.log('Documento NO encontrado con docId: 21061991')
       // Si no existe, creamos uno nuevo
       const id = doc(hospedajeCollection)
       const key = (id as any)._key.path.segments[1]
       setValueIdClient(codigo)
       setValueKeyClient(key)
-      content = {
-        key: valueKeyClient,
-        id: valueIdClient,
-        docId: '21061991'
+      const content = {
+        key: key,
+        id: codigo,
+        docId: '21061991',
+        rellenadoPor: '',
+        docType: 'DNI',
+        name: '',
+        secondName: '',
+        canalLlegada: '',
+        bookingNumber: '',
+        tipoAlquiler: '',
+        habitacion: '',
+        medioDePago: '',
+        precio: '',
+        cantidadPersonas: '1',
+        cantidadDias: '1',
+        fechaHospedaje: '',
+        fechaRegistro: ''
       }
-      setValueContent(JSON.stringify(content))
+
+      const contentStr = JSON.stringify(content)
+      setValueContent(contentStr)
+      if (contentStr) {
+        setIsContentReady(true)
+      }
       await setDoc(id, content)
+      console.log('content nuevo:', content)
     }
+
     setLoading(false) // Finalizar el estado de carga una vez que se complete todo
+    console.log('Fin de nuevoRegistro')
   }
 
-  const handleNewClient = () => {
-    if (isContentReady) {
-      // Now it's safe to use valueContent
-      setValueViewState('cliente')
-    }
+  const handleContentChange = (content: string) => {
+    setValueContent(content)
   }
 
   const handleDetalle = () => {
@@ -139,12 +184,7 @@ export default function Home() {
           aria-hidden='true'
         />
       ),
-      content: (
-        <DashboardHsGol
-          onNewClient={handleNewClient}
-          nuevoRegistro={nuevoRegistro}
-        />
-      )
+      content: <DashboardHsGol nuevoRegistro={nuevoRegistro} />
     },
     {
       id: 'cliente',
@@ -164,6 +204,7 @@ export default function Home() {
           valueContent={valueContent}
           handleDetalle={handleDetalle}
           handleReporte={handleReporte}
+          handleContentChange={handleContentChange}
         />
       )
     },
@@ -176,7 +217,7 @@ export default function Home() {
           aria-hidden='true'
         />
       ),
-      content: <FormHsGol />
+      content: <FormHsGol valueContent={valueContent} />
     }
   ]
 

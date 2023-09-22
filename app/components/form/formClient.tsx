@@ -33,6 +33,7 @@ type FormHsGolClientProps = {
   valueContent: string
   handleDetalle: () => void
   handleReporte: () => void
+  handleContentChange: (value: string) => void
 }
 
 export default function FormHsGolClient({
@@ -40,10 +41,11 @@ export default function FormHsGolClient({
   valueKeyClient,
   valueContent,
   handleDetalle,
-  handleReporte
+  handleReporte,
+  handleContentChange
 }: FormHsGolClientProps) {
-  const parsedContent = JSON.parse(valueContent)
-  const contentKey = parsedContent.key
+  const Content = JSON.parse(valueContent)
+  const contentKey = Content.key
   console.log('valueContent:', valueContent)
   console.log('valueContent:', contentKey)
   const [valueRegistros, setValueRegistros] = useState([])
@@ -54,27 +56,35 @@ export default function FormHsGolClient({
 
   type SelectType = { value: string; label: string }
 
-  const [valueRellenadoPor, setValueRellenadoPor] = useState<SelectType | null>(
-    null
+  const [valueRellenadoPor, setValueRellenadoPor] = useState<SelectType>(
+    Content.rellenadoPor
   )
-  const [valueDocType, setValueDocType] = useState<SelectType | null>(null)
-  const [valueDocId, setValueDocId] = useState('')
-  const [valueName, setValueName] = useState('')
-  const [valueSecondName, setValueSecondName] = useState('')
-  const [valueCanalLlegada, setValueCanalLlegada] = useState<SelectType | null>(
-    null
+  const [valueDocType, setValueDocType] = useState<SelectType>(Content.docType)
+  const [valueDocId, setValueDocId] = useState('') //Content.docId
+  const [valueName, setValueName] = useState(Content.name)
+  const [valueSecondName, setValueSecondName] = useState(Content.secondName)
+  const [valueCanalLlegada, setValueCanalLlegada] = useState<SelectType>(
+    Content.canalLlegada
   )
-  const [valueBookingNumber, setValueBookingNumber] = useState('')
-  const [valueTipoAlquiler, setValueTipoAlquiler] = useState<SelectType | null>(
-    null
+  const [valueBookingNumber, setValueBookingNumber] = useState(
+    Content.bookingNumber
   )
-  const [valueHabitacion, setValueHabitacion] = useState<SelectType | null>(
-    null
+  const [valueTipoAlquiler, setValueTipoAlquiler] = useState<SelectType>(
+    Content.tipoAlquiler
   )
-  const [valueMedioPago, setValueMedioPago] = useState<SelectType | null>(null)
-  const [valuePrecio, setValuePrecio] = useState('')
-  const [valueCantidadPersonas, setValueCantidadPersonas] = useState('1')
-  const [valueCantidadDias, setValueCantidadDias] = useState('1')
+  const [valueHabitacion, setValueHabitacion] = useState<SelectType>(
+    Content.habitacion
+  )
+  const [valueMedioPago, setValueMedioPago] = useState<SelectType>(
+    Content.medioDePago
+  )
+  const [valuePrecio, setValuePrecio] = useState(Content.precio)
+  const [valueCantidadPersonas, setValueCantidadPersonas] = useState(
+    Content.cantidadPersonas
+  )
+  const [valueCantidadDias, setValueCantidadDias] = useState(
+    Content.cantidadDias
+  )
   const [valueDate, setValueDate] = useState<DateRangeType>({
     startDate: null,
     endDate: null
@@ -240,31 +250,35 @@ export default function FormHsGolClient({
   const content = {
     key: valueKeyClient,
     id: valueIdClient,
-    rellenadoPor: valueRellenadoPor?.label,
-    docType: valueDocType?.label,
     docId: valueDocId === '' ? '21061991' : valueDocId,
+    rellenadoPor: valueRellenadoPor?.label || '',
+    docType: valueDocType?.label || '',
     name: formattedName,
     secondName: formattedSecondName,
-    canalLlegada: valueCanalLlegada?.label,
+    canalLlegada: valueCanalLlegada?.label || '',
     bookingNumber: valueBookingNumber,
-    tipoAlquiler: valueTipoAlquiler?.label,
-    habitacion: valueHabitacion?.label,
-    medioDePago: valueMedioPago?.label,
+    tipoAlquiler: valueTipoAlquiler?.label || '',
+    habitacion: valueHabitacion?.label || '',
+    medioDePago: valueMedioPago?.label || '',
     precio: formattedPrecio,
-    cantidadPersonas: valueCantidadPersonas,
+    cantidadPersonas: parseInt(valueCantidadPersonas, 10),
     cantidadDias: formattedCantidadDias,
     fechaHospedaje: formattedFechaHospedaje,
     fechaRegistro: serverTimestamp()
   }
 
+  console.log('content:', content)
+
   const guardar = async () => {
     const db = getFirestore()
-    const id = doc(collection(db, 'hospedaje'), valueKeyClient)
+    const id = doc(collection(db, 'hospedaje'), contentKey)
     try {
       await updateDoc(id, content)
+      handleContentChange(JSON.stringify(content))
     } catch (error) {
       console.log(error)
     }
+    handleDetalle()
   }
 
   return (
@@ -273,7 +287,7 @@ export default function FormHsGolClient({
         <div className='mt-5 grid grid-cols-1 gap-x-6 gap-y-8 pt-5 sm:grid-cols-9'>
           <div className='sm:col-span-8'>
             <h2 className='font-semibold text-gray-900 dark:text-gray-50'>
-              Registro de cliente: {valueIdClient}
+              Registro de cliente: {Content.id}
             </h2>
             <p className='leading-1 mt-1 pb-5 text-sm text-gray-600 dark:text-gray-100'>
               Registrar los datos del cliente y la habitación.
@@ -541,7 +555,6 @@ export default function FormHsGolClient({
           variant='solid'
           onClick={() => {
             guardar()
-            handleDetalle()
           }}
         >
           Guardar

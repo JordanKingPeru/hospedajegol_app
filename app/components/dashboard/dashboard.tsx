@@ -1,14 +1,10 @@
 import { Button } from '@nextui-org/button'
 
 type DashboardHsGolProps = {
-  onNewClient: () => void
   nuevoRegistro: () => void
 }
 
-export default function DashboardHsGol({
-  onNewClient,
-  nuevoRegistro
-}: DashboardHsGolProps) {
+export default function DashboardHsGol({ nuevoRegistro }: DashboardHsGolProps) {
   return (
     <section id='zonaDashboard' className='py-10'>
       <Button
@@ -18,7 +14,6 @@ export default function DashboardHsGol({
         variant='solid'
         onClick={() => {
           nuevoRegistro()
-          onNewClient()
         }}
       >
         Nuevo cliente

@@ -1,13 +1,31 @@
 import { PhotoIcon, UserCircleIcon } from '@heroicons/react/24/solid'
 import { Image } from '@nextui-org/react'
 
-export default function FormHsGol() {
+type FormHsGolProps = {
+  valueContent: string
+}
+
+export default function FormHsGol({ valueContent }: FormHsGolProps) {
+  const Content = JSON.parse(valueContent)
+  console.log('consola content resultado:', Content)
   const features = [
-    { name: 'Datos Cliente', description: 'Designed by Good Goods, Inc.' },
+    {
+      name: 'Datos Cliente',
+      caract01: Content.name + ' ' + Content.secondName,
+      caract02: Content.docType + ': ' + Content.docId,
+      caract03: Content.canalLlegada,
+      caract04: 'Content.fechaHospedaje'
+    },
     {
       name: 'Habitación',
-      description:
-        'Solid walnut base with rare earth magnets and powder coated steel card cover'
+      caract01: Content.tipoAlquiler + ' habitación: ' + Content.habitacion,
+      caract02:
+        '#días: ' +
+        Content.cantidadDias +
+        ', #personas: ' +
+        Content.cantidadPersonas,
+      caract03: 'Precio S/. ' + Content.precio,
+      caract04: Content.medioPago
     }
   ]
 
@@ -30,22 +48,13 @@ export default function FormHsGol() {
                   className='border-t border-gray-200 pt-4'
                 >
                   <dt className='font-medium '>{feature.name}</dt>
-                  <dd className='mt-2 text-sm '>{feature.description}</dd>
+                  <dd className='mt-2 text-sm '>{feature.caract01}</dd>
+                  <dd className='mt-2 text-sm '>{feature.caract02}</dd>
+                  <dd className='mt-2 text-sm '>{feature.caract03}</dd>
+                  <dd className='mt-2 text-sm '>{feature.caract04}</dd>
                 </div>
               ))}
             </dl>
-          </div>
-          <div className='grid grid-cols-2 grid-rows-2 gap-4 sm:gap-6 lg:gap-8'>
-            <Image
-              src='https://tailwindui.com/img/ecommerce-images/product-feature-03-detail-01.jpg'
-              alt='Walnut card tray with white powder coated steel divider and 3 punchout holes.'
-              className='rounded-lg bg-gray-100'
-            />
-            <Image
-              src='https://tailwindui.com/img/ecommerce-images/product-feature-03-detail-02.jpg'
-              alt='Top down view of walnut card tray with embedded magnets and card groove.'
-              className='rounded-lg bg-gray-100'
-            />
           </div>
         </div>
       </div>
