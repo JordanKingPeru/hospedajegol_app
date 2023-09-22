@@ -1,20 +1,50 @@
 import { PhotoIcon, UserCircleIcon } from '@heroicons/react/24/solid'
-import { Image } from '@nextui-org/react'
+import { Button, Image } from '@nextui-org/react'
 
 type FormHsGolProps = {
   valueContent: string
+  handleReporte: () => void
 }
 
-export default function FormHsGol({ valueContent }: FormHsGolProps) {
+export default function FormHsGol({
+  valueContent,
+  handleReporte
+}: FormHsGolProps) {
   const Content = JSON.parse(valueContent)
-  console.log('consola content resultado:', Content)
+  console.log(Content)
+  function timestampToString(timestamp) {
+    const months = [
+      'Enero',
+      'Febrero',
+      'Marzo',
+      'Abril',
+      'Mayo',
+      'Junio',
+      'Julio',
+      'Agosto',
+      'Septiembre',
+      'Octubre',
+      'Noviembre',
+      'Diciembre'
+    ]
+
+    // Convertir el Timestamp de Firebase a milisegundos para usarlo con Date
+    const date = new Date(timestamp.seconds * 1000)
+
+    const day = date.getDate()
+    const month = months[date.getMonth()] // getMonth() retorna un número entre 0 (Ene) y 11 (Dic)
+    const year = date.getFullYear()
+
+    return `${day} ${month} ${year}`
+  }
+
   const features = [
     {
       name: 'Datos Cliente',
       caract01: Content.name + ' ' + Content.secondName,
       caract02: Content.docType + ': ' + Content.docId,
       caract03: Content.canalLlegada,
-      caract04: 'Content.fechaHospedaje'
+      caract04: 'Fecha hospedaje: ' + timestampToString(Content.fechaHospedaje)
     },
     {
       name: 'Habitación',
@@ -25,7 +55,7 @@ export default function FormHsGol({ valueContent }: FormHsGolProps) {
         ', #personas: ' +
         Content.cantidadPersonas,
       caract03: 'Precio S/. ' + Content.precio,
-      caract04: Content.medioPago
+      caract04: Content.medioDePago
     }
   ]
 
@@ -57,6 +87,19 @@ export default function FormHsGol({ valueContent }: FormHsGolProps) {
             </dl>
           </div>
         </div>
+      </div>
+      <div className='mt-6 flex items-center justify-end gap-x-6'>
+        <Button
+          color='primary'
+          size='sm'
+          radius='sm'
+          variant='solid'
+          onClick={() => {
+            handleReporte()
+          }}
+        >
+          Confirmar
+        </Button>
       </div>
     </form>
   )

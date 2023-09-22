@@ -45,9 +45,7 @@ export default function FormHsGolClient({
   handleContentChange
 }: FormHsGolClientProps) {
   const Content = JSON.parse(valueContent)
-  const contentKey = Content.key
-  console.log('valueContent:', valueContent)
-  console.log('valueContent:', contentKey)
+
   const [valueRegistros, setValueRegistros] = useState([])
   const [valueRegistrosRE, setValueRegistrosRE] = useState([])
   const [viewState, setViewState] = useState('main')
@@ -80,10 +78,10 @@ export default function FormHsGolClient({
   )
   const [valuePrecio, setValuePrecio] = useState(Content.precio)
   const [valueCantidadPersonas, setValueCantidadPersonas] = useState(
-    Content.cantidadPersonas
+    Content.cantidadPersonas.toString()
   )
   const [valueCantidadDias, setValueCantidadDias] = useState(
-    Content.cantidadDias
+    Content.cantidadDias.toString()
   )
   const [valueDate, setValueDate] = useState<DateRangeType>({
     startDate: null,
@@ -157,7 +155,6 @@ export default function FormHsGolClient({
     e?: HTMLInputElement | null
   ) => {
     if (newValue) {
-      console.log('newValue:', newValue)
       setValueDate(newValue)
     }
   }
@@ -168,11 +165,16 @@ export default function FormHsGolClient({
     !!value.match(/^[a-zA-Z]+(?:\s[a-zA-Z]+)*$/)
 
   // Validation function for the price
-  const validatePrecio = (value: string) =>
-    !!value.match(/^(0|[1-9]\d*)(\.\d)?$/)
+  const validatePrecio = (value: string) => {
+    if (!value) return false
+    return !!value.match(/^(0|[1-9]\d*)(\.\d)?$/)
+  }
 
   // Validation function for the quantity of days
-  const validateCantidadDias = (value: string) => !!value.match(/^[1-9]\d*$/)
+  const validateCantidadDias = (value: string) => {
+    if (!value) return false
+    return !!value.match(/^[1-9]\d*$/)
+  }
 
   const isDNIInvalid = useMemo(() => {
     if (valueDocId === '') return false
@@ -267,18 +269,24 @@ export default function FormHsGolClient({
     fechaRegistro: serverTimestamp()
   }
 
-  console.log('content:', content)
-
-  const guardar = async () => {
+  const guardar_detalle = async () => {
     const db = getFirestore()
-    const id = doc(collection(db, 'hospedaje'), contentKey)
+    const id = doc(collection(db, 'hospedaje'), Content.key)
     try {
       await updateDoc(id, content)
       handleContentChange(JSON.stringify(content))
-    } catch (error) {
-      console.log(error)
-    }
+    } catch (error) {}
     handleDetalle()
+  }
+
+  const guardar_atras = async () => {
+    const db = getFirestore()
+    const id = doc(collection(db, 'hospedaje'), Content.key)
+    try {
+      await updateDoc(id, content)
+      handleContentChange(JSON.stringify(content))
+    } catch (error) {}
+    handleReporte()
   }
 
   return (
@@ -543,7 +551,7 @@ export default function FormHsGolClient({
           radius='sm'
           variant='flat'
           onClick={() => {
-            handleReporte()
+            guardar_atras()
           }}
         >
           Cancelar
@@ -554,7 +562,7 @@ export default function FormHsGolClient({
           radius='sm'
           variant='solid'
           onClick={() => {
-            guardar()
+            guardar_detalle()
           }}
         >
           Guardar

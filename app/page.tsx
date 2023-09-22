@@ -49,7 +49,6 @@ export default function Home() {
   }
   // Helper functions
   const nuevoRegistro = async () => {
-    console.log('Inicio de nuevoRegistro')
     setLoading(true)
 
     // Cambia la vista aquí
@@ -64,16 +63,10 @@ export default function Home() {
 
     const codigo = Math.random().toString(36).substring(2, 7).toUpperCase()
 
-    console.log('querySnapshot:', querySnapshot)
-
     if (!querySnapshot.empty) {
-      console.log('Documento encontrado con docId: 21061991')
       // Si existe un documento con docId: "21061991", actualizamos
       const documentSnapshot = querySnapshot.docs[0]
-      const docIdToUpdate = documentSnapshot.id
       const dataSnapshot = documentSnapshot.data()
-
-      console.log('dataSnapshot:', dataSnapshot)
 
       const updatedKeyClient = dataSnapshot.key
       const updatedIdClient = dataSnapshot.id
@@ -106,9 +99,7 @@ export default function Home() {
       }
 
       await updateDoc(doc(hospedajeCollection, updatedKeyClient), content)
-      console.log('content existente:', content)
     } else {
-      console.log('Documento NO encontrado con docId: 21061991')
       // Si no existe, creamos uno nuevo
       const id = doc(hospedajeCollection)
       const key = (id as any)._key.path.segments[1]
@@ -140,11 +131,9 @@ export default function Home() {
         setIsContentReady(true)
       }
       await setDoc(id, content)
-      console.log('content nuevo:', content)
     }
 
     setLoading(false) // Finalizar el estado de carga una vez que se complete todo
-    console.log('Fin de nuevoRegistro')
   }
 
   const handleContentChange = (content: string) => {
@@ -217,7 +206,9 @@ export default function Home() {
           aria-hidden='true'
         />
       ),
-      content: <FormHsGol valueContent={valueContent} />
+      content: (
+        <FormHsGol valueContent={valueContent} handleReporte={handleReporte} />
+      )
     }
   ]
 

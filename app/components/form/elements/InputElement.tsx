@@ -47,7 +47,6 @@ const InputElement: React.FC<InputElementProps> = ({
             : undefined
         }
         errorMessage={isInvalid ? mesageError : ''}
-        onClear={() => console.log('input cleared')}
         onValueChange={setValueDocId}
         endContent={
           isEndContent && (
