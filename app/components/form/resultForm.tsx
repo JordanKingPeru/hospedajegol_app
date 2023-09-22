@@ -6,13 +6,18 @@ type FormHsGolProps = {
   handleReporte: () => void
 }
 
+type Timestamp = {
+  seconds: number
+  nanoseconds: number
+}
+
 export default function FormHsGol({
   valueContent,
   handleReporte
 }: FormHsGolProps) {
   const Content = JSON.parse(valueContent)
   console.log(Content)
-  function timestampToString(timestamp) {
+  function timestampToString(timestamp: Timestamp) {
     const months = [
       'Enero',
       'Febrero',
