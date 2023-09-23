@@ -1,4 +1,5 @@
 import { Button } from '@nextui-org/button'
+import HospedajeTable from './reporteClient'
 
 type DashboardHsGolProps = {
   nuevoRegistro: () => void
@@ -18,6 +19,9 @@ export default function DashboardHsGol({ nuevoRegistro }: DashboardHsGolProps) {
       >
         Nuevo cliente
       </Button>
+      <div className='py-10'>
+        <HospedajeTable />
+      </div>
     </section>
   )
 }
