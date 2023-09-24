@@ -119,7 +119,7 @@ export default function Home() {
         tipoAlquiler: '',
         habitacion: '',
         medioDePago: '',
-        precio: '',
+        precio: '0',
         cantidadPersonas: '1',
         cantidadDias: '1',
         fechaHospedaje: '',

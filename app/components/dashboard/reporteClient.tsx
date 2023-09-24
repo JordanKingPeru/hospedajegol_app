@@ -42,7 +42,7 @@ import {
   ChevronDownIcon,
   MagnifyingGlassIcon
 } from '@heroicons/react/24/solid'
-import { columns, users, statusOptions } from './data'
+import { columnsHsGol, statusOptionsHsGol } from './data'
 import { capitalize } from './utils'
 
 const getOneWeekAgoDate = (): Date => {
@@ -89,30 +89,48 @@ const fetchLastWeekData = async () => {
 }
 
 const statusColorMap: Record<string, ChipProps['color']> = {
-  active: 'success',
-  paused: 'danger',
-  vacation: 'warning'
+  Momentaneo: 'success',
+  pornoche: 'danger',
+  pormes: 'warning'
 }
 
 const INITIAL_VISIBLE_COLUMNS = ['name', 'role', 'status', 'actions']
 const INITIAL_VISIBLE_COLUMNS_HSGOL = [
+  'name',
   'fechaHospedaje',
-  'rellenadoPor',
-  'habitacion',
-  'precio',
-  'tipoAlquiler'
+  'tipoAlquiler',
+  'actions'
 ]
 
-type User = (typeof users)[0]
+type UserHsGol = {
+  avatar: string
+  bookingNumber: string
+  canalLlegada: string
+  cantidadDias: number
+  cantidadPersonas: number
+  docId: string
+  docType: string
+  fechaHospedaje: string
+  fechaRegistro: string
+  habitacion: string
+  id: string
+  key: string
+  medioDePago: string
+  name: string
+  precio: number
+  rellenadoPor: string
+  secondName: string
+  tipoAlquiler: string
+}
 
 export default function HospedajeTable() {
-  const [data, setData] = useState<any[]>([])
+  const [usersHsGol, setUsersHsGol] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     const fetchData = async () => {
       const result = await fetchLastWeekData()
-      setData(result)
+      setUsersHsGol(result)
       setIsLoading(false)
     }
 
@@ -122,30 +140,32 @@ export default function HospedajeTable() {
   const [filterValue, setFilterValue] = useState('')
   const [selectedKeys, setSelectedKeys] = useState<Selection>(new Set([]))
   const [visibleColumns, setVisibleColumns] = useState<Selection>(
-    new Set(INITIAL_VISIBLE_COLUMNS)
+    new Set(INITIAL_VISIBLE_COLUMNS_HSGOL)
   )
+
   const [statusFilter, setStatusFilter] = useState<Selection>('all')
   const [rowsPerPage, setRowsPerPage] = useState(5)
   const [sortDescriptor, setSortDescriptor] = useState<SortDescriptor>({
-    column: 'age',
+    column: 'fechaHospedaje',
     direction: 'ascending'
   })
+
   const [page, setPage] = useState(1)
 
-  const pages = Math.ceil(users.length / rowsPerPage)
+  const pages = Math.ceil(usersHsGol.length / rowsPerPage)
 
   const hasSearchFilter = Boolean(filterValue)
 
   const headerColumns = useMemo(() => {
-    if (visibleColumns === 'all') return columns
+    if (visibleColumns === 'all') return columnsHsGol
 
-    return columns.filter(column =>
+    return columnsHsGol.filter(column =>
       Array.from(visibleColumns).includes(column.uid)
     )
   }, [visibleColumns])
 
   const filteredItems = useMemo(() => {
-    let filteredUsers = [...users]
+    let filteredUsers = [...usersHsGol]
 
     if (hasSearchFilter) {
       filteredUsers = filteredUsers.filter(user =>
@@ -154,15 +174,15 @@ export default function HospedajeTable() {
     }
     if (
       statusFilter !== 'all' &&
-      Array.from(statusFilter).length !== statusOptions.length
+      Array.from(statusFilter).length !== statusOptionsHsGol.length
     ) {
       filteredUsers = filteredUsers.filter(user =>
-        Array.from(statusFilter).includes(user.status)
+        Array.from(statusFilter).includes(user.tipoAlquiler)
       )
     }
 
     return filteredUsers
-  }, [hasSearchFilter, statusFilter, filterValue])
+  }, [usersHsGol, hasSearchFilter, statusFilter, filterValue])
 
   const items = useMemo(() => {
     const start = (page - 1) * rowsPerPage
@@ -172,17 +192,17 @@ export default function HospedajeTable() {
   }, [page, filteredItems, rowsPerPage])
 
   const sortedItems = useMemo(() => {
-    return [...items].sort((a: User, b: User) => {
-      const first = a[sortDescriptor.column as keyof User] as number
-      const second = b[sortDescriptor.column as keyof User] as number
+    return [...items].sort((a: UserHsGol, b: UserHsGol) => {
+      const first = a[sortDescriptor.column as keyof UserHsGol] as number
+      const second = b[sortDescriptor.column as keyof UserHsGol] as number
       const cmp = first < second ? -1 : first > second ? 1 : 0
 
       return sortDescriptor.direction === 'descending' ? -cmp : cmp
     })
   }, [sortDescriptor, items])
 
-  const renderCell = useCallback((user: User, columnKey: Key) => {
-    const cellValue = user[columnKey as keyof User]
+  const renderCell = useCallback((user: UserHsGol, columnKey: Key) => {
+    const cellValue = user[columnKey as keyof UserHsGol]
 
     switch (columnKey) {
       case 'name':
@@ -192,45 +212,57 @@ export default function HospedajeTable() {
             classNames={{
               description: 'text-default-500'
             }}
-            description={user.email}
-            name={cellValue}
+            description={user.rellenadoPor + ' ' + user.habitacion}
+            name={cellValue + ' ' + user.secondName}
           >
-            {user.email}
+            {user.rellenadoPor + ' ' + user.habitacion}
           </User>
         )
-      case 'role':
+      case 'fechaHospedaje':
         return (
           <div className='flex flex-col'>
             <p className='text-bold text-small capitalize'>{cellValue}</p>
             <p className='text-bold text-tiny capitalize text-default-500'>
-              {user.team}
+              {'S/. ' + user.precio + ' ' + user.medioDePago}
             </p>
           </div>
         )
-      case 'status':
+      case 'tipoAlquiler':
         return (
-          <Chip
-            className='gap-1 border-none capitalize text-default-600'
-            color={statusColorMap[user.status]}
-            size='sm'
-            variant='dot'
-          >
-            {cellValue}
-          </Chip>
+          <div className='flex flex-col'>
+            <Chip
+              className='gap-1 border-none capitalize text-default-600'
+              color={statusColorMap[user.tipoAlquiler]}
+              size='sm'
+              variant='dot'
+            >
+              {cellValue}
+            </Chip>
+            <p className='text-bold text-tiny capitalize text-default-500'>
+              Nro días: {user.cantidadDias} - Nro personas:{' '}
+              {user.cantidadPersonas}
+            </p>
+          </div>
         )
       case 'actions':
         return (
           <div className='relative flex items-center justify-end gap-2'>
             <Dropdown className='border-1 border-default-200 bg-background'>
               <DropdownTrigger>
-                <Button isIconOnly radius='full' size='sm' variant='light'>
+                <Button
+                  aria-label='Detalle'
+                  isIconOnly
+                  radius='full'
+                  size='sm'
+                  variant='light'
+                >
                   <EllipsisVerticalIcon className='text-default-400' />
                 </Button>
               </DropdownTrigger>
               <DropdownMenu>
-                <DropdownItem>View</DropdownItem>
-                <DropdownItem>Edit</DropdownItem>
-                <DropdownItem>Delete</DropdownItem>
+                <DropdownItem aria-label='Ver'>Ver</DropdownItem>
+                <DropdownItem aria-label='Editar'>Editar</DropdownItem>
+                <DropdownItem aria-label='Eliminar'>Eliminar</DropdownItem>
               </DropdownMenu>
             </Dropdown>
           </div>
@@ -299,7 +331,7 @@ export default function HospedajeTable() {
                 selectionMode='multiple'
                 onSelectionChange={setStatusFilter}
               >
-                {statusOptions.map(status => (
+                {statusOptionsHsGol.map(status => (
                   <DropdownItem key={status.uid} className='capitalize'>
                     {capitalize(status.name)}
                   </DropdownItem>
@@ -326,7 +358,7 @@ export default function HospedajeTable() {
                 selectionMode='multiple'
                 onSelectionChange={setVisibleColumns}
               >
-                {columns.map(column => (
+                {columnsHsGol.map(column => (
                   <DropdownItem key={column.uid} className='capitalize'>
                     {capitalize(column.name)}
                   </DropdownItem>
@@ -347,7 +379,7 @@ export default function HospedajeTable() {
         </div>
         <div className='flex items-center justify-between'>
           <span className='text-small text-default-400'>
-            Total {users.length} users
+            Total {usersHsGol.length} users
           </span>
           <label className='flex items-center text-small text-default-400'>
             Rows per page:
@@ -365,9 +397,10 @@ export default function HospedajeTable() {
     )
   }, [
     filterValue,
+    onSearchChange,
     statusFilter,
     visibleColumns,
-    onSearchChange,
+    usersHsGol.length,
     onRowsPerPageChange
   ])
 

@@ -9,7 +9,6 @@ export const columns = [
   { name: 'ACTIONS', uid: 'actions' }
 ]
 export const columnsHsGol = [
-  { name: 'KEY', uid: 'key' },
   { name: 'ID', uid: 'id' },
   { name: 'RESPONSABLE', uid: 'rellenadoPor', sortable: true },
   { name: 'TIPO DOC', uid: 'docType', sortable: true },
@@ -25,13 +24,124 @@ export const columnsHsGol = [
   { name: 'NRO HABITACIÓN', uid: 'habitacion' },
   { name: 'CANT PERSONAS', uid: 'cantidadPersonas' },
   { name: 'TIPO SERVICIO', uid: 'tipoAlquiler' },
-  { name: 'BOOKING', uid: 'bookingNumber' }
+  { name: 'BOOKING', uid: 'bookingNumber' },
+  { name: 'ACTIONS', uid: 'actions' },
+  { name: 'STATUS', uid: 'status', sortable: true }
 ]
 
 export const statusOptions = [
   { name: 'Active', uid: 'active' },
   { name: 'Paused', uid: 'paused' },
   { name: 'Vacation', uid: 'vacation' }
+]
+
+export const statusOptionsHsGol = [
+  { name: 'Momentaneo', uid: 'Momentaneo' },
+  { name: 'Por noche', uid: 'pornoche' },
+  { name: 'Por mes', uid: 'pormes' }
+]
+
+export const usersHsGol = [
+  {
+    avatar: 'https://i.pravatar.cc/150?u=4',
+    bookingNumber: '1234567892',
+    canalLlegada: 'Vivo, estudio o trabajo cerca',
+    cantidadDias: 1,
+    cantidadPersonas: 2,
+    docId: '70690276',
+    docType: 'DNI',
+    fechaHospedaje: '22/09/2023',
+    fechaRegistro: '23/09/2023',
+    habitacion: '204',
+    id: 'JFCBW',
+    key: '4pL1N1WzfFcNETfZab92',
+    medioDePago: 'Tarjeta de Crédito',
+    name: 'Jordan',
+    precio: 58,
+    rellenadoPor: 'Jordan Rodriguez',
+    secondName: 'Rodriguez',
+    tipoAlquiler: 'Momentaneo'
+  },
+  {
+    avatar: 'https://i.pravatar.cc/150?u=3',
+    bookingNumber: '',
+    canalLlegada: '',
+    cantidadDias: 1,
+    cantidadPersonas: 1,
+    docId: '20119607',
+    docType: 'DNI',
+    fechaHospedaje: '22/09/2023',
+    fechaRegistro: '22/09/2023',
+    habitacion: '102',
+    id: 'D6WNY',
+    key: 'j3LEYkksgYXc4pQfsqpP',
+    medioDePago: 'Efectivo',
+    name: 'Ñuñez',
+    precio: 40,
+    rellenadoPor: 'Rosa Mallqui',
+    secondName: ' Rodtiguez',
+    tipoAlquiler: 'Momentaneo'
+  },
+  {
+    avatar: 'https://i.pravatar.cc/150?u=2',
+    bookingNumber: '',
+    canalLlegada: '',
+    cantidadDias: 1,
+    cantidadPersonas: 1,
+    docId: '72443922',
+    docType: 'DNI',
+    fechaHospedaje: '22/09/2023',
+    fechaRegistro: '22/09/2023',
+    habitacion: '103',
+    id: 'OU1VE',
+    key: 'v8LIWwLUBV4n4kBHFxTJ',
+    medioDePago: 'Efectivo',
+    name: 'Mayco',
+    precio: 20,
+    rellenadoPor: 'Rosa Mallqui',
+    secondName: 'Rodriguez',
+    tipoAlquiler: 'Momentaneo'
+  },
+  {
+    avatar: 'https://i.pravatar.cc/150?u=1',
+    bookingNumber: '1234567894',
+    canalLlegada: 'Búsqueda en Internet',
+    cantidadDias: 1,
+    cantidadPersonas: 2,
+    docId: '44725119',
+    docType: 'DNI',
+    fechaHospedaje: '23/09/2023',
+    fechaRegistro: '24/09/2023',
+    habitacion: '205',
+    id: 'YM5O5',
+    key: 'DC8dSIwvmyXJiElRqChR',
+    medioDePago: 'Yape o Plin',
+    name: 'Cristina',
+    precio: 58,
+    rellenadoPor: 'Jordan Rodriguez',
+    secondName: 'Rodriguez',
+    tipoAlquiler: 'Momentaneo'
+  },
+  {
+    avatar: 'https://i.pravatar.cc/150?u=',
+    bookingNumber: '1234567891',
+    canalLlegada: 'Booking.com',
+    cantidadDias: 1,
+    cantidadPersonas: 3,
+    docId: '21061991',
+    docType: 'DNI',
+    fechaHospedaje: '24/09/2023',
+    fechaRegistro: '24/09/2023',
+    habitacion: '204',
+    id: 'HFPME',
+    key: '3OmqNddTKLAzPqZjviDo',
+    medioDePago: 'Tarjeta de Crédito',
+    name: 'Abigail',
+    precio: 95,
+    rellenadoPor: 'Jordan Rodriguez',
+    secondName: 'Rodriguez',
+    tipoAlquiler: 'Momentaneo'
+  }
 ]
 
 export const users = [
