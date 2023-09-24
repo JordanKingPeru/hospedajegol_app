@@ -45,6 +45,9 @@ import {
 import { columnsHsGol, statusOptionsHsGol } from './data'
 import { capitalize } from './utils'
 
+type DashboardHsGolProps = {
+  nuevoRegistro: () => void
+}
 const getOneWeekAgoDate = (): Date => {
   const date = new Date()
   date.setDate(date.getDate() - 7)
@@ -123,7 +126,7 @@ type UserHsGol = {
   tipoAlquiler: string
 }
 
-export default function HospedajeTable() {
+export default function HospedajeTable({ nuevoRegistro }: DashboardHsGolProps) {
   const [usersHsGol, setUsersHsGol] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
@@ -371,7 +374,9 @@ export default function HospedajeTable() {
                 <PlusIcon className='mx-auto h-6 w-6 text-default-300' />
               }
               size='sm'
-              onClick={() => fetchLastWeekData()}
+              onClick={() => {
+                nuevoRegistro()
+              }}
             >
               Nuevo cliente
             </Button>
