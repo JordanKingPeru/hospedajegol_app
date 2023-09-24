@@ -1,5 +1,5 @@
 import { PhotoIcon, UserCircleIcon } from '@heroicons/react/24/solid'
-import { Button, Image } from '@nextui-org/react'
+import { Button, Image, User } from '@nextui-org/react'
 
 type FormHsGolProps = {
   valueContent: string
@@ -19,18 +19,18 @@ export default function FormHsGol({
   console.log(Content)
   function timestampToString(timestamp: Timestamp) {
     const months = [
-      'Enero',
-      'Febrero',
-      'Marzo',
-      'Abril',
-      'Mayo',
-      'Junio',
-      'Julio',
-      'Agosto',
-      'Septiembre',
-      'Octubre',
-      'Noviembre',
-      'Diciembre'
+      'Ene',
+      'Feb',
+      'Mar',
+      'Abr',
+      'May',
+      'Jun',
+      'Jul',
+      'Ago',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dic'
     ]
 
     // Convertir el Timestamp de Firebase a milisegundos para usarlo con Date
@@ -46,10 +46,21 @@ export default function FormHsGol({
   const features = [
     {
       name: 'Datos Cliente',
-      caract01: Content.name + ' ' + Content.secondName,
-      caract02: Content.docType + ': ' + Content.docId,
+      caract01: (
+        <User
+          avatarProps={{ radius: 'full', size: 'sm', src: Content.avatar }}
+          classNames={{
+            description: 'text-default-500'
+          }}
+          description={Content.docType + ': ' + Content.docId}
+          name={Content.name + ' ' + Content.secondName}
+        >
+          {Content.name + ' ' + Content.secondName}
+        </User>
+      ), //Content.name + ' ' + Content.secondName,
+      caract02: 'R: ' + Content.rellenadoPor,
       caract03: Content.canalLlegada,
-      caract04: 'Fecha hospedaje: ' + timestampToString(Content.fechaHospedaje)
+      caract04: 'Fecha: ' + timestampToString(Content.fechaHospedaje)
     },
     {
       name: 'Habitación',
@@ -82,7 +93,7 @@ export default function FormHsGol({
                   key={feature.name}
                   className='border-t border-gray-200 pt-4'
                 >
-                  <dt className='font-medium '>{feature.name}</dt>
+                  <dt className='font-extrabold '>{feature.name}</dt>
                   <dd className='mt-2 text-sm '>{feature.caract01}</dd>
                   <dd className='mt-2 text-sm '>{feature.caract02}</dd>
                   <dd className='mt-2 text-sm '>{feature.caract03}</dd>

@@ -266,7 +266,8 @@ export default function FormHsGolClient({
     cantidadPersonas: parseInt(valueCantidadPersonas, 10),
     cantidadDias: formattedCantidadDias,
     fechaHospedaje: formattedFechaHospedaje,
-    fechaRegistro: serverTimestamp()
+    fechaRegistro: serverTimestamp(),
+    avatar: 'https://i.pravatar.cc/150?u=' + valueDocId
   }
 
   const guardar_detalle = async () => {

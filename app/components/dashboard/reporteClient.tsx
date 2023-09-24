@@ -94,8 +94,8 @@ const statusColorMap: Record<string, ChipProps['color']> = {
   vacation: 'warning'
 }
 
-const INITIAL_VISIBLE_COLUMNS_HSGOL = ['name', 'role', 'status', 'actions']
-const INITIAL_VISIBLE_COLUMNS = [
+const INITIAL_VISIBLE_COLUMNS = ['name', 'role', 'status', 'actions']
+const INITIAL_VISIBLE_COLUMNS_HSGOL = [
   'fechaHospedaje',
   'rellenadoPor',
   'habitacion',

@@ -90,7 +90,8 @@ export default function Home() {
         cantidadPersonas: dataSnapshot.cantidadPersonas,
         cantidadDias: dataSnapshot.cantidadDias,
         fechaHospedaje: dataSnapshot.fechaHospedaje,
-        fechaRegistro: dataSnapshot.fechaRegistro
+        fechaRegistro: dataSnapshot.fechaRegistro,
+        avatar: dataSnapshot.avatar
       }
       const contentStr = JSON.stringify(content)
       setValueContent(contentStr)
@@ -122,7 +123,8 @@ export default function Home() {
         cantidadPersonas: '1',
         cantidadDias: '1',
         fechaHospedaje: '',
-        fechaRegistro: ''
+        fechaRegistro: '',
+        avatar: ''
       }
 
       const contentStr = JSON.stringify(content)
