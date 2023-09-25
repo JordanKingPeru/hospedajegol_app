@@ -153,7 +153,7 @@ export default function HospedajeTable({ nuevoRegistro }: DashboardHsGolProps) {
   const [rowsPerPage, setRowsPerPage] = useState(5)
   const [sortDescriptor, setSortDescriptor] = useState<SortDescriptor>({
     column: 'fechaHospedaje',
-    direction: 'ascending'
+    direction: 'descending'
   })
 
   const [page, setPage] = useState(1)
