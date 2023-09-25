@@ -33,7 +33,11 @@ import {
   Pagination,
   Selection,
   ChipProps,
-  SortDescriptor
+  SortDescriptor,
+  Card,
+  CardFooter,
+  Image,
+  CardBody
 } from '@nextui-org/react'
 // Asegúrate de importar tus propios iconos o los de @heroicons/react
 import {
@@ -87,7 +91,6 @@ const fetchLastWeekData = async () => {
     }
   })
 
-  console.log(data)
   return data
 }
 
@@ -293,6 +296,9 @@ export default function HospedajeTable({ nuevoRegistro }: DashboardHsGolProps) {
   }, [])
 
   const topContent = useMemo(() => {
+    // 1. Calcular la suma total de "precio"
+    const totalPrecio = usersHsGol.reduce((sum, user) => sum + user.precio, 0)
+
     return (
       <div className='flex flex-col gap-4'>
         <div className='flex items-end justify-between gap-3'>
@@ -303,7 +309,7 @@ export default function HospedajeTable({ nuevoRegistro }: DashboardHsGolProps) {
               inputWrapper: 'border-1',
               input: 'text-default-500 border-none bg-transparent'
             }}
-            placeholder='Search by name...'
+            placeholder='Buscar cliente'
             size='sm'
             startContent={
               <MagnifyingGlassIcon className='mx-auto h-6 w-6 text-default-300' />
@@ -383,11 +389,28 @@ export default function HospedajeTable({ nuevoRegistro }: DashboardHsGolProps) {
           </div>
         </div>
         <div className='flex items-center justify-between'>
-          <span className='text-small text-default-400'>
-            Total {usersHsGol.length} users
-          </span>
+          <div className='flex flex-col'>
+            <Card isPressable radius='sm'>
+              <CardBody className='items-center'>
+                <span className='text-small text-default-400'>Clientes</span>
+                <span className='text-small text-default-400'>
+                  {usersHsGol.length}
+                </span>
+              </CardBody>
+            </Card>
+          </div>
+          <div className='flex flex-col'>
+            <Card isPressable radius='sm'>
+              <CardBody className='items-center'>
+                <span className='text-small text-default-400'>Ingresos</span>
+                <span className='text-small text-default-400'>
+                  S/. {totalPrecio.toFixed(1)}
+                </span>
+              </CardBody>
+            </Card>
+          </div>
           <label className='flex items-center text-small text-default-400'>
-            Rows per page:
+            Filas:
             <select
               className='border-0 bg-transparent text-small text-default-400 outline-none'
               onChange={onRowsPerPageChange}
@@ -406,7 +429,8 @@ export default function HospedajeTable({ nuevoRegistro }: DashboardHsGolProps) {
     statusFilter,
     visibleColumns,
     usersHsGol.length,
-    onRowsPerPageChange
+    onRowsPerPageChange,
+    nuevoRegistro
   ])
 
   const bottomContent = useMemo(() => {

@@ -16,7 +16,6 @@ export default function FormHsGol({
   handleReporte
 }: FormHsGolProps) {
   const Content = JSON.parse(valueContent)
-  console.log(Content)
   function timestampToString(timestamp: Timestamp) {
     const months = [
       'Ene',
