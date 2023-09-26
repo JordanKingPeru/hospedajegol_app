@@ -20,6 +20,7 @@ import {
   updateDoc,
   serverTimestamp
 } from 'firebase/firestore'
+import { Switch, cn } from '@nextui-org/react'
 
 type DateType = Date | string | null
 interface DateRangeType {
@@ -46,14 +47,9 @@ export default function FormHsGolClient({
 }: FormHsGolClientProps) {
   const Content = JSON.parse(valueContent)
 
-  const [valueRegistros, setValueRegistros] = useState([])
-  const [valueRegistrosRE, setValueRegistrosRE] = useState([])
-  const [viewState, setViewState] = useState('main')
-  const [editState, setEditState] = useState({})
-  const [nav, setNav] = useState('Identificación')
-
   type SelectType = { value: string; label: string }
 
+  const [isDatosClientes, setIsDatosClientes] = useState(false)
   const [valueRellenadoPor, setValueRellenadoPor] = useState<SelectType>(
     Content.rellenadoPor
   )
@@ -252,11 +248,15 @@ export default function FormHsGolClient({
   const content = {
     key: valueKeyClient,
     id: valueIdClient,
-    docId: valueDocId === '' ? '21061991' : valueDocId,
+    docId: !isDatosClientes
+      ? valueDocId === ''
+        ? '21061991'
+        : valueDocId
+      : valueIdClient,
     rellenadoPor: valueRellenadoPor?.label || '',
     docType: valueDocType?.label || '',
-    name: formattedName,
-    secondName: formattedSecondName,
+    name: !isDatosClientes ? formattedName : 'Sin nombre',
+    secondName: !isDatosClientes ? formattedSecondName : '',
     canalLlegada: valueCanalLlegada?.label || '',
     bookingNumber: valueBookingNumber,
     tipoAlquiler: valueTipoAlquiler?.label || '',
@@ -294,13 +294,45 @@ export default function FormHsGolClient({
     <form>
       <div className='border-b pb-10'>
         <div className='mt-5 grid grid-cols-1 gap-x-6 gap-y-8 pt-5 sm:grid-cols-9'>
-          <div className='sm:col-span-8'>
+          <div className='py-4 sm:col-span-5'>
             <h2 className='font-semibold text-gray-900 dark:text-gray-50'>
               Registro de cliente: {Content.id}
             </h2>
             <p className='leading-1 mt-1 pb-5 text-sm text-gray-600 dark:text-gray-100'>
-              Registrar los datos del cliente y la habitación.
+              Datos del cliente y la habitación.
             </p>
+          </div>
+          <div className='sm:col-span-4'>
+            <Switch
+              isSelected={isDatosClientes}
+              onValueChange={setIsDatosClientes}
+              classNames={{
+                base: cn(
+                  'inline-flex flex-row-reverse w-full max-w-md bg-content1 hover:bg-content2 items-center',
+                  'justify-between cursor-pointer rounded-lg gap-2 p-4 border-2 border-gray-100',
+                  'data-[selected=true]:border-primary'
+                ),
+                wrapper: 'p-0 h-4 overflow-visible',
+                thumb: cn(
+                  'w-6 h-6 border-2 shadow-lg',
+                  'group-data-[hover=true]:border-primary',
+                  //selected
+                  'group-data-[selected=true]:ml-6',
+                  // pressed
+                  'group-data-[pressed=true]:w-7',
+                  'group-data-[selected]:group-data-[pressed]:ml-4'
+                )
+              }}
+            >
+              <div className='flex flex-col gap-1'>
+                <p className='text-medium text-default-600'>
+                  Negación del cliente
+                </p>
+                <p className='text-tiny text-default-400'>
+                  Activar si no hay datos cliente.
+                </p>
+              </div>
+            </Switch>
           </div>
           <div className='sm:col-span-3'>
             <Select
@@ -321,95 +353,99 @@ export default function FormHsGolClient({
               ))}
             </Select>
           </div>
-          <div className='sm:col-span-3'>
-            <Select
-              isRequired
-              size='md'
-              radius='sm'
-              labelPlacement='outside'
-              variant='faded'
-              label='Tipo documento'
-              className='w-full'
-              selectedKeys={valueDocType ? [valueDocType.value] : []}
-              onChange={handleSelectionChangeDocType}
-            >
-              {tipoDocumento.map(tipDoc => (
-                <SelectItem key={tipDoc.value} value={tipDoc.value}>
-                  {tipDoc.label}
-                </SelectItem>
-              ))}
-            </Select>
-          </div>
-          <div className='sm:col-span-3'>
-            <InputElement
-              label='Número documento'
-              type='text'
-              key='docId'
-              valueDocId={valueDocId}
-              setValueDocId={setValueDocId}
-              isInvalid={isDNIInvalid}
-              mesageError={'DNI con 8 digitos numéricos'}
-            />
-          </div>
-          <div className='sm:col-span-4'>
-            <InputElement
-              label='Nombre'
-              type='text'
-              key='nameClient'
-              valueDocId={valueName}
-              setValueDocId={setValueName}
-              isInvalid={isNameInvalid}
-              mesageError={'Sólo 1 espacio'}
-            />
-          </div>
+          {!isDatosClientes && (
+            <>
+              <div className='sm:col-span-3'>
+                <Select
+                  isRequired
+                  size='md'
+                  radius='sm'
+                  labelPlacement='outside'
+                  variant='faded'
+                  label='Tipo documento'
+                  className='w-full'
+                  selectedKeys={valueDocType ? [valueDocType.value] : []}
+                  onChange={handleSelectionChangeDocType}
+                >
+                  {tipoDocumento.map(tipDoc => (
+                    <SelectItem key={tipDoc.value} value={tipDoc.value}>
+                      {tipDoc.label}
+                    </SelectItem>
+                  ))}
+                </Select>
+              </div>
+              <div className='sm:col-span-3'>
+                <InputElement
+                  label='Número documento'
+                  type='text'
+                  key='docId'
+                  valueDocId={valueDocId}
+                  setValueDocId={setValueDocId}
+                  isInvalid={isDNIInvalid}
+                  mesageError={'DNI con 8 digitos numéricos'}
+                />
+              </div>
+              <div className='sm:col-span-4'>
+                <InputElement
+                  label='Nombre'
+                  type='text'
+                  key='nameClient'
+                  valueDocId={valueName}
+                  setValueDocId={setValueName}
+                  isInvalid={isNameInvalid}
+                  mesageError={'Sólo 1 espacio'}
+                />
+              </div>
+              <div className='sm:col-span-5'>
+                <InputElement
+                  label='Apellido'
+                  type='text'
+                  key='secondNameClient'
+                  valueDocId={valueSecondName}
+                  setValueDocId={setValueSecondName}
+                  isInvalid={isSecondNameInvalid}
+                  mesageError={'Sólo 1 espacio'}
+                />
+              </div>
 
-          <div className='sm:col-span-5'>
-            <InputElement
-              label='Apellido'
-              type='text'
-              key='secondNameClient'
-              valueDocId={valueSecondName}
-              setValueDocId={setValueSecondName}
-              isInvalid={isSecondNameInvalid}
-              mesageError={'Sólo 1 espacio'}
-            />
-          </div>
+              <div className='sm:col-span-4'>
+                <Select
+                  isRequired
+                  size='md'
+                  radius='sm'
+                  labelPlacement='outside'
+                  variant='faded'
+                  label='¿Cómo conoció HS Gol?'
+                  className='w-full'
+                  selectedKeys={
+                    valueCanalLlegada ? [valueCanalLlegada.value] : []
+                  }
+                  onChange={handleSelectionChangeCanal}
+                >
+                  {canalContacto.map(canal => (
+                    <SelectItem key={canal.value} value={canal.value}>
+                      {canal.label}
+                    </SelectItem>
+                  ))}
+                </Select>
+                <p className='text-small text-default-500'>
+                  Selected: {valueCanalLlegada?.label}
+                </p>
+              </div>
 
-          <div className='sm:col-span-4'>
-            <Select
-              isRequired
-              size='md'
-              radius='sm'
-              labelPlacement='outside'
-              variant='faded'
-              label='¿Cómo conoció HS Gol?'
-              className='w-full'
-              selectedKeys={valueCanalLlegada ? [valueCanalLlegada.value] : []}
-              onChange={handleSelectionChangeCanal}
-            >
-              {canalContacto.map(canal => (
-                <SelectItem key={canal.value} value={canal.value}>
-                  {canal.label}
-                </SelectItem>
-              ))}
-            </Select>
-            <p className='text-small text-default-500'>
-              Selected: {valueCanalLlegada?.label}
-            </p>
-          </div>
-
-          <div className='sm:col-span-5'>
-            <InputElement
-              label='Código reserva (Booking number)'
-              type='text'
-              key='bookingNumber'
-              valueDocId={valueBookingNumber}
-              setValueDocId={setValueBookingNumber}
-              isInvalid={isBookingNumberInvalid}
-              mesageError={'Son 10 digitos numéricos'}
-            />
-          </div>
-
+              <div className='sm:col-span-5'>
+                <InputElement
+                  label='Código reserva (Booking number)'
+                  type='text'
+                  key='bookingNumber'
+                  valueDocId={valueBookingNumber}
+                  setValueDocId={setValueBookingNumber}
+                  isInvalid={isBookingNumberInvalid}
+                  mesageError={'Son 10 digitos numéricos'}
+                />
+              </div>
+            </>
+          )}
           <div className='col-span-full'>
             <Divider className='my-2' />
           </div>
