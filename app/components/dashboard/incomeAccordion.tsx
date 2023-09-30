@@ -29,7 +29,7 @@ export default function FormHsGol({
   }
 
   const defaultContent = (
-    <>
+    <div>
       <p className='flex items-center'>
         Ayer <span className='ml-2 text-primary'>S/.{ingresosAyer}</span>
         <UsersIcon className='ml-2 h-4 w-4 text-default-500' />
@@ -40,7 +40,7 @@ export default function FormHsGol({
         <UsersIcon className='ml-2 h-4 w-4 text-default-500' />
         <span className='mx-auto ml-2 text-default-500'>{clientesSemana}</span>
       </p>
-    </>
+    </div>
   )
 
   return (
