@@ -43,7 +43,7 @@ import {
   MagnifyingGlassIcon
 } from '@heroicons/react/24/solid'
 import { columns, users, statusOptions } from './data'
-import { capitalize } from './utils'
+import { capitalize } from './hospedajeUtils'
 
 const getOneWeekAgoDate = (): Date => {
   const date = new Date()

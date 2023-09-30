@@ -1,13 +1,4 @@
 import {
-  getFirestore,
-  collection,
-  query,
-  where,
-  getDocs,
-  orderBy,
-  Timestamp
-} from 'firebase/firestore'
-import {
   ChangeEvent,
   Key,
   useCallback,
@@ -35,8 +26,6 @@ import {
   ChipProps,
   SortDescriptor,
   Card,
-  CardFooter,
-  Image,
   CardBody
 } from '@nextui-org/react'
 // Asegúrate de importar tus propios iconos o los de @heroicons/react
@@ -47,51 +36,11 @@ import {
   MagnifyingGlassIcon
 } from '@heroicons/react/24/solid'
 import { columnsHsGol, statusOptionsHsGol } from './data'
-import { capitalize } from './utils'
+import { capitalize, fetchLastWeekData } from './hospedajeUtils'
+import AccordionHsGol from './incomeAccordion'
 
 type DashboardHsGolProps = {
   nuevoRegistro: () => void
-}
-const getOneWeekAgoDate = (): Date => {
-  const date = new Date()
-  date.setDate(date.getDate() - 7)
-  return date
-}
-
-const formatTimestampToDate = (timestamp: {
-  seconds: number
-  nanoseconds: number
-}): string => {
-  const date = new Date(timestamp.seconds * 1000)
-  const day = String(date.getDate()).padStart(2, '0')
-  const month = String(date.getMonth() + 1).padStart(2, '0') // Months are 0-indexed
-  const year = date.getFullYear()
-  return `${day}/${month}/${year}`
-}
-
-const fetchLastWeekData = async () => {
-  const db = getFirestore()
-  const hospedajeCollection = collection(db, 'hospedaje')
-
-  // Convertir la fecha a un objeto Timestamp
-  const lastWeekTimestamp = Timestamp.fromDate(getOneWeekAgoDate())
-
-  const q = query(
-    hospedajeCollection,
-    where('fechaHospedaje', '>=', lastWeekTimestamp)
-  )
-  const querySnapshot = await getDocs(q)
-
-  const data = querySnapshot.docs.map(doc => {
-    const item = doc.data()
-    return {
-      ...item,
-      fechaHospedaje: formatTimestampToDate(item.fechaHospedaje),
-      fechaRegistro: formatTimestampToDate(item.fechaRegistro)
-    }
-  })
-
-  return data
 }
 
 const statusColorMap: Record<string, ChipProps['color']> = {
@@ -100,7 +49,6 @@ const statusColorMap: Record<string, ChipProps['color']> = {
   pormes: 'warning'
 }
 
-const INITIAL_VISIBLE_COLUMNS = ['name', 'role', 'status', 'actions']
 const INITIAL_VISIBLE_COLUMNS_HSGOL = [
   'name',
   'fechaHospedaje',
@@ -127,6 +75,81 @@ type UserHsGol = {
   rellenadoPor: string
   secondName: string
   tipoAlquiler: string
+}
+
+const compareUsers = (
+  a: UserHsGol,
+  b: UserHsGol,
+  sortDescriptor: SortDescriptor
+): number => {
+  if (sortDescriptor.column === 'fechaHospedaje') {
+    const [aDate, aTime] = a.fechaHospedaje.split(' ')
+    const [bDate, bTime] = b.fechaHospedaje.split(' ')
+    const aTimestamp = convertToDate(aDate, aTime)
+    const bTimestamp = convertToDate(bDate, bTime)
+    const cmp = aTimestamp < bTimestamp ? -1 : aTimestamp > bTimestamp ? 1 : 0
+    return sortDescriptor.direction === 'descending' ? -cmp : cmp
+  } else {
+    const first = a[sortDescriptor.column as keyof UserHsGol] as number
+    const second = b[sortDescriptor.column as keyof UserHsGol] as number
+    const cmp = first < second ? -1 : first > second ? 1 : 0
+    return sortDescriptor.direction === 'descending' ? -cmp : cmp
+  }
+}
+
+const useCurrentDate = () => {
+  const today = new Date()
+  const yesterday = new Date(today)
+  yesterday.setDate(yesterday.getDate() - 1)
+
+  const firstDayOfWeek = new Date(today)
+  firstDayOfWeek.setDate(firstDayOfWeek.getDate() - firstDayOfWeek.getDay())
+
+  return { today, yesterday, firstDayOfWeek }
+}
+
+const isToday = (fechaHospedaje: string, today: Date) => {
+  const [fecha, hora] = fechaHospedaje.split(' ')
+  const date = convertToDate(fecha, hora)
+  return (
+    date.getDate() === today.getDate() &&
+    date.getMonth() === today.getMonth() &&
+    date.getFullYear() === today.getFullYear()
+  )
+}
+
+const isYesterday = (fechaHospedaje: string, yesterday: Date) => {
+  const [fecha, hora] = fechaHospedaje.split(' ')
+  const date = convertToDate(fecha, hora)
+  return (
+    date.getDate() === yesterday.getDate() &&
+    date.getMonth() === yesterday.getMonth() &&
+    date.getFullYear() === yesterday.getFullYear()
+  )
+}
+
+const isThisWeek = (fechaHospedaje: string, firstDayOfWeek: Date) => {
+  const [fecha, hora] = fechaHospedaje.split(' ')
+  const date = convertToDate(fecha, hora)
+  return date >= firstDayOfWeek
+}
+const convertToDate = (fecha: string, hora: string) => {
+  console.log('primer', fecha, hora) // Esto nos mostrará las entradas.
+
+  const [day, month, year] = fecha.split('/').map(Number)
+  const fullYear = year > 50 ? 1900 + year : 2000 + year // Asumimos que cualquier año mayor a 50 pertenece al siglo 20
+  let [hours, minutes] = hora.split(':').map(Number)
+  const isPM = hora.includes('PM')
+
+  if (isPM && hours !== 12) hours += 12
+  if (!isPM && hours === 12) hours = 0
+
+  const resultDate = new Date(fullYear, month - 1, day, hours, minutes)
+  console.log('Fecha:', fecha, 'Hora:', hora, 'Resultado:', resultDate)
+
+  console.log('segundo', resultDate) // Esto nos mostrará la fecha resultante.
+
+  return resultDate
 }
 
 export default function HospedajeTable({ nuevoRegistro }: DashboardHsGolProps) {
@@ -190,22 +213,15 @@ export default function HospedajeTable({ nuevoRegistro }: DashboardHsGolProps) {
     return filteredUsers
   }, [usersHsGol, hasSearchFilter, statusFilter, filterValue])
 
+  const sortedAndFilteredItems = useMemo(() => {
+    return [...filteredItems].sort((a, b) => compareUsers(a, b, sortDescriptor))
+  }, [sortDescriptor, filteredItems])
+
   const items = useMemo(() => {
     const start = (page - 1) * rowsPerPage
     const end = start + rowsPerPage
-
-    return filteredItems.slice(start, end)
-  }, [page, filteredItems, rowsPerPage])
-
-  const sortedItems = useMemo(() => {
-    return [...items].sort((a: UserHsGol, b: UserHsGol) => {
-      const first = a[sortDescriptor.column as keyof UserHsGol] as number
-      const second = b[sortDescriptor.column as keyof UserHsGol] as number
-      const cmp = first < second ? -1 : first > second ? 1 : 0
-
-      return sortDescriptor.direction === 'descending' ? -cmp : cmp
-    })
-  }, [sortDescriptor, items])
+    return sortedAndFilteredItems.slice(start, end)
+  }, [page, sortedAndFilteredItems, rowsPerPage])
 
   const renderCell = useCallback((user: UserHsGol, columnKey: Key) => {
     const cellValue = user[columnKey as keyof UserHsGol]
@@ -216,10 +232,11 @@ export default function HospedajeTable({ nuevoRegistro }: DashboardHsGolProps) {
           <User
             avatarProps={{ radius: 'full', size: 'sm', src: user.avatar }}
             classNames={{
-              description: 'text-default-500'
+              description: 'text-default-400',
+              name: 'text-default-600'
             }}
             description={user.rellenadoPor + ' ' + user.habitacion}
-            name={cellValue + ' ' + user.secondName}
+            name={cellValue}
           >
             {user.rellenadoPor + ' ' + user.habitacion}
           </User>
@@ -295,8 +312,37 @@ export default function HospedajeTable({ nuevoRegistro }: DashboardHsGolProps) {
     }
   }, [])
 
+  const { today, yesterday, firstDayOfWeek } = useCurrentDate()
+
   const topContent = useMemo(() => {
     // 1. Calcular la suma total de "precio"
+    const todayUsers = usersHsGol.filter(user =>
+      isToday(user.fechaHospedaje, today)
+    )
+
+    const clientesHoy = todayUsers.length
+    const ingresosHoy = todayUsers.reduce((sum, user) => sum + user.precio, 0)
+
+    // Calculating for yesterday
+    const yesterdayUsers = usersHsGol.filter(user =>
+      isYesterday(user.fechaHospedaje, yesterday)
+    )
+    const clientesAyer = yesterdayUsers.length
+    const ingresosAyer = yesterdayUsers.reduce(
+      (sum, user) => sum + user.precio,
+      0
+    )
+
+    // Calculating for this week
+    const thisWeekUsers = usersHsGol.filter(user =>
+      isThisWeek(user.fechaHospedaje, firstDayOfWeek)
+    )
+    const clientesSemana = thisWeekUsers.length
+    const ingresosSemana = thisWeekUsers.reduce(
+      (sum, user) => sum + user.precio,
+      0
+    )
+
     const totalPrecio = usersHsGol.reduce((sum, user) => sum + user.precio, 0)
 
     return (
@@ -390,24 +436,14 @@ export default function HospedajeTable({ nuevoRegistro }: DashboardHsGolProps) {
         </div>
         <div className='flex items-center justify-between'>
           <div className='flex flex-col'>
-            <Card isPressable radius='sm'>
-              <CardBody className='items-center'>
-                <span className='text-small text-default-400'>Clientes</span>
-                <span className='text-small text-default-400'>
-                  {usersHsGol.length}
-                </span>
-              </CardBody>
-            </Card>
-          </div>
-          <div className='flex flex-col'>
-            <Card isPressable radius='sm'>
-              <CardBody className='items-center'>
-                <span className='text-small text-default-400'>Ingresos</span>
-                <span className='text-small text-default-400'>
-                  S/. {totalPrecio.toFixed(1)}
-                </span>
-              </CardBody>
-            </Card>
+            <AccordionHsGol
+              clientesHoy={clientesHoy.toString()}
+              ingresosHoy={ingresosHoy.toFixed(1)}
+              clientesAyer={clientesAyer.toString()}
+              ingresosAyer={ingresosAyer.toFixed(1)}
+              clientesSemana={clientesSemana.toString()}
+              ingresosSemana={ingresosSemana.toFixed(1)}
+            />
           </div>
           <label className='flex items-center text-small text-default-400'>
             Filas:
@@ -424,11 +460,11 @@ export default function HospedajeTable({ nuevoRegistro }: DashboardHsGolProps) {
       </div>
     )
   }, [
+    usersHsGol,
     filterValue,
     onSearchChange,
     statusFilter,
     visibleColumns,
-    usersHsGol.length,
     onRowsPerPageChange,
     nuevoRegistro
   ])
@@ -508,7 +544,7 @@ export default function HospedajeTable({ nuevoRegistro }: DashboardHsGolProps) {
           </TableColumn>
         )}
       </TableHeader>
-      <TableBody emptyContent={'No users found'} items={sortedItems}>
+      <TableBody emptyContent={'No users found'} items={items}>
         {item => (
           <TableRow key={item.id}>
             {columnKey => <TableCell>{renderCell(item, columnKey)}</TableCell>}

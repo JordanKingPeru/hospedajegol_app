@@ -3,6 +3,15 @@ import { useMemo, useState, ChangeEvent } from 'react'
 import { Select, SelectItem } from '@nextui-org/select'
 import InputElement from './elements/InputElement'
 import {
+  handleSelectionChange,
+  validateDNI,
+  validateBookingNumber,
+  validateName,
+  validatePrecio,
+  validateCantidadDias,
+  formatName
+} from './elements/utils'
+import {
   tipoDocumento,
   canalContacto,
   habitacionDisponible,
@@ -84,67 +93,35 @@ export default function FormHsGolClient({
     endDate: null
   })
 
-  const handleSelectionChangeRellenadoPor = (
-    e: ChangeEvent<HTMLSelectElement>
-  ) => {
-    const selectedRellenadoPor = rellenadoPor.find(
-      item => item.value === e.target.value
-    )
+  const handleSelectionChangeRellenadoPor = handleSelectionChange(
+    rellenadoPor,
+    setValueRellenadoPor
+  )
 
-    if (selectedRellenadoPor) {
-      setValueRellenadoPor(selectedRellenadoPor)
-    }
-  }
+  const handleSelectionChangeDocType = handleSelectionChange(
+    tipoDocumento,
+    setValueDocType
+  )
 
-  const handleSelectionChangeDocType = (e: ChangeEvent<HTMLSelectElement>) => {
-    const selectedDocType = tipoDocumento.find(
-      item => item.value === e.target.value
-    )
+  const handleSelectionChangeCanal = handleSelectionChange(
+    canalContacto,
+    setValueCanalLlegada
+  )
 
-    if (selectedDocType) {
-      setValueDocType(selectedDocType)
-    }
-  }
+  const handleSelectionTipoAlquiler = handleSelectionChange(
+    tiposAlquiler,
+    setValueTipoAlquiler
+  )
 
-  const handleSelectionChangeCanal = (e: ChangeEvent<HTMLSelectElement>) => {
-    const selectedCanalLlegada = canalContacto.find(
-      item => item.value === e.target.value
-    )
+  const handleSelectionHabitacion = handleSelectionChange(
+    habitacionDisponible,
+    setValueHabitacion
+  )
 
-    if (selectedCanalLlegada) {
-      setValueCanalLlegada(selectedCanalLlegada)
-    }
-  }
-
-  const handleSelectionTipoAlquiler = (e: ChangeEvent<HTMLSelectElement>) => {
-    const selectedTipoAlquiler = tiposAlquiler.find(
-      item => item.value === e.target.value
-    )
-
-    if (selectedTipoAlquiler) {
-      setValueTipoAlquiler(selectedTipoAlquiler)
-    }
-  }
-
-  const handleSelectionHabitacion = (e: ChangeEvent<HTMLSelectElement>) => {
-    const selectedHabitacion = habitacionDisponible.find(
-      item => item.value === e.target.value
-    )
-
-    if (selectedHabitacion) {
-      setValueHabitacion(selectedHabitacion)
-    }
-  }
-
-  const handleSelectionMedioPago = (e: ChangeEvent<HTMLSelectElement>) => {
-    const selectedMedioPago = medioPago.find(
-      item => item.value === e.target.value
-    )
-
-    if (selectedMedioPago) {
-      setValueMedioPago(selectedMedioPago)
-    }
-  }
+  const handleSelectionMedioPago = handleSelectionChange(
+    medioPago,
+    setValueMedioPago
+  )
 
   const handleValueChange = (
     newValue: DateRangeType | null,
@@ -153,23 +130,6 @@ export default function FormHsGolClient({
     if (newValue) {
       setValueDate(newValue)
     }
-  }
-
-  const validateDNI = (value: string) => !!value.match(/^(?:\d{8})$/)
-  const validateBookingNumber = (value: string) => !!value.match(/^(?:\d{10})$/)
-  const validateName = (value: string) =>
-    !!value.match(/^[a-zA-Z]+(?:\s[a-zA-Z]+)*$/)
-
-  // Validation function for the price
-  const validatePrecio = (value: string) => {
-    if (!value) return false
-    return !!value.match(/^(0|[1-9]\d*)(\.\d)?$/)
-  }
-
-  // Validation function for the quantity of days
-  const validateCantidadDias = (value: string) => {
-    if (!value) return false
-    return !!value.match(/^[1-9]\d*$/)
   }
 
   const isDNIInvalid = useMemo(() => {
@@ -232,15 +192,6 @@ export default function FormHsGolClient({
   }
 
   const formattedFechaHospedaje = getFirebaseTimestamp(valueDate?.startDate)
-
-  // 4. Convert name and secondName so that each word starts with an uppercase letter.
-  const formatName = (str: string) => {
-    return str
-      .toLowerCase()
-      .split(' ')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ')
-  }
 
   const formattedName = formatName(valueName)
   const formattedSecondName = formatName(valueSecondName)

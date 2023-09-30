@@ -46,27 +46,27 @@ export const medioPago = [
 
 export const rellenadoPor = [
   {
-    label: 'Victor Rodriguez',
+    label: 'Victor',
     value: 'VictorRodriguez',
     description: 'Victor Rodriguez'
   },
   {
-    label: 'Rosa Mallqui',
+    label: 'Rosa',
     value: 'rosaMallqui',
     description: 'Rosa Mallqui'
   },
   {
-    label: 'Jahir Rodriguez',
+    label: 'Jahir',
     value: 'jahirRodriguez',
     description: 'Jahir Rodriguez'
   },
   {
-    label: 'Maycol Rodriguez',
+    label: 'Maycol',
     value: 'maycolRodriguez',
     description: 'Maycol Rodriguez'
   },
   {
-    label: 'Jordan Rodriguez',
+    label: 'Jordan',
     value: 'jordanRodriguez',
     description: 'Jordan Rodriguez'
   }
