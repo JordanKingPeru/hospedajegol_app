@@ -134,8 +134,6 @@ const isThisWeek = (fechaHospedaje: string, firstDayOfWeek: Date) => {
   return date >= firstDayOfWeek
 }
 const convertToDate = (fecha: string, hora: string) => {
-  console.log('primer', fecha, hora) // Esto nos mostrará las entradas.
-
   const [day, month, year] = fecha.split('/').map(Number)
   const fullYear = year > 50 ? 1900 + year : 2000 + year // Asumimos que cualquier año mayor a 50 pertenece al siglo 20
   let [hours, minutes] = hora.split(':').map(Number)
@@ -145,11 +143,40 @@ const convertToDate = (fecha: string, hora: string) => {
   if (!isPM && hours === 12) hours = 0
 
   const resultDate = new Date(fullYear, month - 1, day, hours, minutes)
-  console.log('Fecha:', fecha, 'Hora:', hora, 'Resultado:', resultDate)
-
-  console.log('segundo', resultDate) // Esto nos mostrará la fecha resultante.
-
   return resultDate
+}
+
+const generateIncomeByDayOfWeek = (users: UserHsGol[]): any[] => {
+  // Actualizar el arreglo de días de la semana al español y comenzando en lunes
+  const daysOfWeek = ['lun', 'mar', 'mie', 'jue', 'vie', 'sab', 'dom']
+
+  // Actualizar las claves del objeto incomeMap para que coincidan con los nombres de los días en español
+  const incomeMap: Record<string, number> = {
+    lun: 0,
+    mar: 0,
+    mie: 0,
+    jue: 0,
+    vie: 0,
+    sab: 0,
+    dom: 0
+  }
+
+  users.forEach(user => {
+    const [fecha, hora] = user.fechaHospedaje.split(' ')
+    const date = convertToDate(fecha, hora)
+
+    // Ajustar el índice para comenzar en lunes en lugar de domingo
+    let dayIndex = date.getDay() - 1
+    if (dayIndex === -1) dayIndex = 6
+
+    const dayName = daysOfWeek[dayIndex]
+    incomeMap[dayName] += user.precio
+  })
+
+  return daysOfWeek.map(day => ({
+    diaSemana: day,
+    ingresos: incomeMap[day]
+  }))
 }
 
 export default function HospedajeTable({ nuevoRegistro }: DashboardHsGolProps) {
@@ -343,7 +370,29 @@ export default function HospedajeTable({ nuevoRegistro }: DashboardHsGolProps) {
       0
     )
 
-    const totalPrecio = usersHsGol.reduce((sum, user) => sum + user.precio, 0)
+    const todayUsersYapeOPlin = todayUsers.filter(
+      user => user.medioDePago === 'Yape o Plin'
+    )
+
+    // Calcular clientes y ingresos de hoy que pagaron mediante Yape o Plin
+    const clientesHoyYapeOPlin = todayUsersYapeOPlin.length
+    const ingresosHoyYapeOPlin = todayUsersYapeOPlin.reduce(
+      (sum, user) => sum + user.precio,
+      0
+    )
+
+    const todayUsersEfectivo = todayUsers.filter(
+      user => user.medioDePago === 'Efectivo'
+    )
+
+    // Calcular clientes y ingresos de hoy que pagaron mediante Yape o Plin
+    const clientesHoyEfectivo = todayUsersEfectivo.length
+    const ingresosHoyEfectivo = todayUsersEfectivo.reduce(
+      (sum, user) => sum + user.precio,
+      0
+    )
+
+    const incomeByDayOdWeek = generateIncomeByDayOfWeek(usersHsGol)
 
     return (
       <div className='flex flex-col gap-4'>
@@ -434,17 +483,24 @@ export default function HospedajeTable({ nuevoRegistro }: DashboardHsGolProps) {
             </Button>
           </div>
         </div>
-        <div className='flex items-center justify-between'>
-          <div className='flex flex-col'>
+        <div className='grid-cols-1  sm:grid-cols-9'>
+          <div className='sm:col-span-8'>
             <AccordionHsGol
               clientesHoy={clientesHoy.toString()}
-              ingresosHoy={ingresosHoy.toFixed(1)}
+              ingresosHoy={ingresosHoy.toFixed(0)}
+              clientesHoyYapeOPlin={clientesHoyYapeOPlin.toString()}
+              ingresosHoyYapeOPlin={ingresosHoyYapeOPlin.toFixed(0)}
+              clientesHoyEfectivo={clientesHoyEfectivo.toString()}
+              ingresosHoyEfectivo={ingresosHoyEfectivo.toFixed(0)}
               clientesAyer={clientesAyer.toString()}
-              ingresosAyer={ingresosAyer.toFixed(1)}
+              ingresosAyer={ingresosAyer.toFixed(0)}
               clientesSemana={clientesSemana.toString()}
-              ingresosSemana={ingresosSemana.toFixed(1)}
+              ingresosSemana={ingresosSemana.toFixed(0)}
+              incomeByDayOdWeek={incomeByDayOdWeek}
             />
           </div>
+        </div>
+        <div className='flex items-center justify-end'>
           <label className='flex items-center text-small text-default-400'>
             Filas:
             <select
@@ -466,6 +522,9 @@ export default function HospedajeTable({ nuevoRegistro }: DashboardHsGolProps) {
     statusFilter,
     visibleColumns,
     onRowsPerPageChange,
+    today,
+    yesterday,
+    firstDayOfWeek,
     nuevoRegistro
   ])
 

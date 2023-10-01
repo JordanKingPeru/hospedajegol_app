@@ -7,7 +7,7 @@ type DashboardHsGolProps = {
 
 export default function DashboardHsGol({ nuevoRegistro }: DashboardHsGolProps) {
   return (
-    <section id='zonaDashboard' className='py-10'>
+    <section id='zonaDashboard' className='py-6'>
       <HospedajeTable nuevoRegistro={nuevoRegistro} />
     </section>
   )
