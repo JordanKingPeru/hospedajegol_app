@@ -74,6 +74,15 @@ export default function FormHsGol({
       <div className='text-primary'>Evolución ingreso semanal</div>
 
       <Overview incomeByDayOdWeek={incomeByDayOdWeek} />
+
+      <Divider className='my-4' />
+      <iframe
+        width='365'
+        height='300'
+        src='https://lookerstudio.google.com/embed/reporting/a1914868-403e-410b-af1d-69f9a0609325/page/IiOeD'
+        style={{ border: 0 }}
+        allowFullScreen
+      ></iframe>
     </div>
   )
 

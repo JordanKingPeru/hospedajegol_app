@@ -9,37 +9,6 @@ import {
   YAxis
 } from 'recharts'
 
-const data = [
-  {
-    diaSemana: 'Lun',
-    ingresos: Math.floor(Math.random() * 500) + 100
-  },
-  {
-    diaSemana: 'Mar',
-    ingresos: Math.floor(Math.random() * 500) + 100
-  },
-  {
-    diaSemana: 'Mie',
-    ingresos: Math.floor(Math.random() * 500) + 100
-  },
-  {
-    diaSemana: 'Jue',
-    ingresos: Math.floor(Math.random() * 500) + 100
-  },
-  {
-    diaSemana: 'Vie',
-    ingresos: Math.floor(Math.random() * 500) + 100
-  },
-  {
-    diaSemana: 'Sab',
-    ingresos: Math.floor(Math.random() * 500) + 100
-  },
-  {
-    diaSemana: 'Dom',
-    ingresos: Math.floor(Math.random() * 500) + 100
-  }
-]
-
 const Label = ({ x, y, value }: { x?: any; y?: any; value?: any }) => (
   <text
     x={x}
