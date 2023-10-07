@@ -9,7 +9,8 @@ import {
   getDocs,
   Timestamp,
   query,
-  orderBy
+  orderBy,
+  onSnapshot
 } from 'firebase/firestore'
 
 export const getOneWeekAgoDate = (): Date => {
@@ -48,6 +49,66 @@ export const formatTimestampToHours = (timestamp: {
   return `${hours}:${minutes} ${ampm}`
 }
 
+type UserHsGol = {
+  avatar?: string
+  bookingNumber?: string
+  canalLlegada?: string
+  cantidadDias?: number
+  cantidadPersonas?: number
+  docId?: string
+  docType?: string
+  habitacion?: string
+  id?: string
+  key?: string
+  medioDePago?: string
+  name?: string
+  precio?: number
+  rellenadoPor?: string
+  secondName?: string
+  tipoAlquiler?: string
+  fechaHospedaje?: string
+  fechaRegistro?: string
+}
+
+export const fetchLastWeekData = (
+  setDataCallback: (data: UserHsGol[]) => void
+) => {
+  const db = getFirestore()
+  const hospedajeCollection = collection(db, 'hospedaje')
+
+  const lastWeekTimestamp = Timestamp.fromDate(getOneWeekAgoDate())
+
+  const q = query(
+    hospedajeCollection,
+    where('fechaHospedaje', '>=', lastWeekTimestamp),
+    orderBy('fechaHospedaje'),
+    orderBy('fechaRegistro', 'desc')
+  )
+
+  // Utilizamos onSnapshot para "escuchar" los cambios en los datos en tiempo real
+  const unsubscribe = onSnapshot(q, querySnapshot => {
+    const data = querySnapshot.docs.map(doc => {
+      const item = doc.data()
+      return {
+        ...item,
+        fechaHospedaje:
+          formatTimestampToDate(item.fechaHospedaje) +
+          ' ' +
+          formatTimestampToHours(item.fechaRegistro),
+        fechaRegistro:
+          formatTimestampToDate(item.fechaRegistro) +
+          ' ' +
+          formatTimestampToHours(item.fechaRegistro)
+      }
+    })
+    // Usamos el callback para actualizar el estado de los datos en el componente
+    setDataCallback(data)
+  })
+
+  // La función devuelve una función unsubscribe para limpiar el listener
+  return unsubscribe
+}
+/* 
 export const fetchLastWeekData = async () => {
   const db = getFirestore()
   const hospedajeCollection = collection(db, 'hospedaje')
@@ -80,3 +141,4 @@ export const fetchLastWeekData = async () => {
 
   return data
 }
+ */

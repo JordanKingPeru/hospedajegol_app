@@ -28,6 +28,16 @@ import {
   Card,
   CardBody
 } from '@nextui-org/react'
+
+import {
+  getFirestore,
+  doc,
+  Timestamp,
+  collection,
+  updateDoc,
+  serverTimestamp,
+  deleteDoc
+} from 'firebase/firestore'
 // Asegúrate de importar tus propios iconos o los de @heroicons/react
 import {
   PlusIcon,
@@ -184,14 +194,23 @@ export default function HospedajeTable({ nuevoRegistro }: DashboardHsGolProps) {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    const fetchData = async () => {
-      const result = await fetchLastWeekData()
-      setUsersHsGol(result)
-      setIsLoading(false)
-    }
+    const result = fetchLastWeekData(setUsersHsGol)
+    setIsLoading(false)
 
-    fetchData()
+    return () => result()
   }, [])
+
+  const deleteRecord = async (key: string | undefined) => {
+    const db = getFirestore()
+    const id = doc(collection(db, 'hospedaje'), key)
+    try {
+      await deleteDoc(id)
+      console.log('Document successfully deleted!')
+      // La actualización del estado local ya no es necesaria debido al listener en tiempo real de Firestore
+    } catch (error) {
+      console.error('Error removing document: ', error)
+    }
+  }
 
   const [filterValue, setFilterValue] = useState('')
   const [selectedKeys, setSelectedKeys] = useState<Selection>(new Set([]))
@@ -295,6 +314,7 @@ export default function HospedajeTable({ nuevoRegistro }: DashboardHsGolProps) {
           </div>
         )
       case 'actions':
+        console.log(user.key)
         return (
           <div className='relative flex items-center justify-end gap-2'>
             <Dropdown className='border-1 border-default-200 bg-background'>
@@ -312,7 +332,12 @@ export default function HospedajeTable({ nuevoRegistro }: DashboardHsGolProps) {
               <DropdownMenu>
                 <DropdownItem aria-label='Ver'>Ver</DropdownItem>
                 <DropdownItem aria-label='Editar'>Editar</DropdownItem>
-                <DropdownItem aria-label='Eliminar'>Eliminar</DropdownItem>
+                <DropdownItem
+                  aria-label='Eliminar'
+                  onClick={() => deleteRecord(user.key)}
+                >
+                  Eliminar
+                </DropdownItem>
               </DropdownMenu>
             </Dropdown>
           </div>
@@ -570,7 +595,9 @@ export default function HospedajeTable({ nuevoRegistro }: DashboardHsGolProps) {
     }),
     []
   )
-
+  if (isLoading) {
+    return <p>Loading...</p>
+  }
   return (
     <Table
       isCompact
