@@ -25,25 +25,23 @@ import {
   Selection,
   ChipProps,
   SortDescriptor,
-  Card,
-  CardBody
+  CircularProgress,
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  Divider
 } from '@nextui-org/react'
 
-import {
-  getFirestore,
-  doc,
-  Timestamp,
-  collection,
-  updateDoc,
-  serverTimestamp,
-  deleteDoc
-} from 'firebase/firestore'
+import { getFirestore, doc, collection, deleteDoc } from 'firebase/firestore'
 // Asegúrate de importar tus propios iconos o los de @heroicons/react
 import {
   PlusIcon,
   EllipsisVerticalIcon,
   ChevronDownIcon,
-  MagnifyingGlassIcon
+  MagnifyingGlassIcon,
+  UsersIcon
 } from '@heroicons/react/24/solid'
 import { columnsHsGol, statusOptionsHsGol } from './data'
 import { capitalize, fetchLastWeekData } from './hospedajeUtils'
@@ -59,12 +57,7 @@ const statusColorMap: Record<string, ChipProps['color']> = {
   pormes: 'warning'
 }
 
-const INITIAL_VISIBLE_COLUMNS_HSGOL = [
-  'name',
-  'fechaHospedaje',
-  'tipoAlquiler',
-  'actions'
-]
+const INITIAL_VISIBLE_COLUMNS_HSGOL = ['name', 'fechaHospedaje', 'actions']
 
 type UserHsGol = {
   avatar: string
@@ -192,6 +185,13 @@ const generateIncomeByDayOfWeek = (users: UserHsGol[]): any[] => {
 export default function HospedajeTable({ nuevoRegistro }: DashboardHsGolProps) {
   const [usersHsGol, setUsersHsGol] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [recordToDelete, setRecordToDelete] = useState<string | null>(null)
+
+  const confirmDelete = (key: string) => {
+    setRecordToDelete(key)
+    setIsModalOpen(true)
+  }
 
   useEffect(() => {
     const result = fetchLastWeekData(setUsersHsGol)
@@ -200,15 +200,23 @@ export default function HospedajeTable({ nuevoRegistro }: DashboardHsGolProps) {
     return () => result()
   }, [])
 
-  const deleteRecord = async (key: string | undefined) => {
+  const deleteRecord = async () => {
+    if (!recordToDelete) {
+      console.error("No record to delete. This shouldn't happen.")
+      return
+    }
+
     const db = getFirestore()
-    const id = doc(collection(db, 'hospedaje'), key)
+    const id = doc(collection(db, 'hospedaje'), recordToDelete)
     try {
       await deleteDoc(id)
       console.log('Document successfully deleted!')
       // La actualización del estado local ya no es necesaria debido al listener en tiempo real de Firestore
     } catch (error) {
       console.error('Error removing document: ', error)
+    } finally {
+      setIsModalOpen(false) // Cerrar el modal después de eliminar
+      setRecordToDelete(null) // Limpiar el estado
     }
   }
 
@@ -289,10 +297,26 @@ export default function HospedajeTable({ nuevoRegistro }: DashboardHsGolProps) {
         )
       case 'fechaHospedaje':
         return (
-          <div className='flex flex-col'>
+          <div className='my-2 flex flex-col'>
             <p className='text-bold text-small capitalize'>{cellValue}</p>
             <p className='text-bold text-tiny capitalize text-default-500'>
               {'S/. ' + user.precio + ' ' + user.medioDePago}
+            </p>
+            <Divider className='my-2' />
+            <Chip
+              className='gap-1 border-none capitalize text-default-600'
+              color={statusColorMap[user.tipoAlquiler]}
+              size='sm'
+              variant='dot'
+            >
+              {user.tipoAlquiler}
+            </Chip>
+            <p>
+              <span className='text-bold text-tiny capitalize text-primary-500'>
+                días: {user.cantidadDias} {'  '}
+                <UsersIcon className='ml-2 inline-block h-4 w-4 text-default-500' />
+                : {user.cantidadPersonas}
+              </span>
             </p>
           </div>
         )
@@ -334,7 +358,7 @@ export default function HospedajeTable({ nuevoRegistro }: DashboardHsGolProps) {
                 <DropdownItem aria-label='Editar'>Editar</DropdownItem>
                 <DropdownItem
                   aria-label='Eliminar'
-                  onClick={() => deleteRecord(user.key)}
+                  onClick={() => confirmDelete(user.key)}
                 >
                   Eliminar
                 </DropdownItem>
@@ -596,47 +620,77 @@ export default function HospedajeTable({ nuevoRegistro }: DashboardHsGolProps) {
     []
   )
   if (isLoading) {
-    return <p>Loading...</p>
+    return <CircularProgress color='primary' size='lg' label='Cargando...' />
   }
   return (
-    <Table
-      isCompact
-      removeWrapper
-      aria-label='Example table with custom cells, pagination and sorting'
-      bottomContent={bottomContent}
-      bottomContentPlacement='outside'
-      checkboxesProps={{
-        classNames: {
-          wrapper: 'after:bg-foreground after:text-background text-background'
-        }
-      }}
-      classNames={classNames}
-      selectedKeys={selectedKeys}
-      selectionMode='single'
-      sortDescriptor={sortDescriptor}
-      topContent={topContent}
-      topContentPlacement='outside'
-      onSelectionChange={setSelectedKeys}
-      onSortChange={setSortDescriptor}
-    >
-      <TableHeader columns={headerColumns}>
-        {column => (
-          <TableColumn
-            key={column.uid}
-            align={column.uid === 'actions' ? 'center' : 'start'}
-            allowsSorting={column.sortable}
-          >
-            {column.name}
-          </TableColumn>
-        )}
-      </TableHeader>
-      <TableBody emptyContent={'No users found'} items={items}>
-        {item => (
-          <TableRow key={item.id}>
-            {columnKey => <TableCell>{renderCell(item, columnKey)}</TableCell>}
-          </TableRow>
-        )}
-      </TableBody>
-    </Table>
+    <>
+      <Table
+        isCompact
+        isStriped
+        removeWrapper
+        aria-label='Example table with custom cells, pagination and sorting'
+        bottomContent={bottomContent}
+        bottomContentPlacement='outside'
+        checkboxesProps={{
+          classNames: {
+            wrapper: 'after:bg-foreground after:text-background text-background'
+          }
+        }}
+        classNames={classNames}
+        selectedKeys={selectedKeys}
+        selectionMode='single'
+        sortDescriptor={sortDescriptor}
+        topContent={topContent}
+        topContentPlacement='outside'
+        onSelectionChange={setSelectedKeys}
+        onSortChange={setSortDescriptor}
+      >
+        <TableHeader columns={headerColumns}>
+          {column => (
+            <TableColumn
+              key={column.uid}
+              align={column.uid === 'actions' ? 'center' : 'start'}
+              allowsSorting={column.sortable}
+            >
+              {column.name}
+            </TableColumn>
+          )}
+        </TableHeader>
+        <TableBody emptyContent={'No users found'} items={items}>
+          {item => (
+            <TableRow key={item.id}>
+              {columnKey => (
+                <TableCell>{renderCell(item, columnKey)}</TableCell>
+              )}
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+      <Modal
+        isOpen={isModalOpen}
+        onOpenChange={() => setIsModalOpen(!isModalOpen)}
+      >
+        <ModalContent>
+          {onClose => (
+            <>
+              <ModalHeader className='flex flex-col gap-1'>
+                Confirma la eliminación del registro
+              </ModalHeader>
+              <ModalBody>
+                <p>Recuerda que no hay vuelta atrás, una vez eliminado.</p>
+              </ModalBody>
+              <ModalFooter>
+                <Button color='danger' variant='light' onPress={onClose}>
+                  Cancelar
+                </Button>
+                <Button color='primary' onPress={deleteRecord}>
+                  Aceptar
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+    </>
   )
 }

@@ -108,37 +108,3 @@ export const fetchLastWeekData = (
   // La función devuelve una función unsubscribe para limpiar el listener
   return unsubscribe
 }
-/* 
-export const fetchLastWeekData = async () => {
-  const db = getFirestore()
-  const hospedajeCollection = collection(db, 'hospedaje')
-
-  // Convertir la fecha a un objeto Timestamp
-  const lastWeekTimestamp = Timestamp.fromDate(getOneWeekAgoDate())
-
-  const q = query(
-    hospedajeCollection,
-    where('fechaHospedaje', '>=', lastWeekTimestamp),
-    orderBy('fechaHospedaje'),
-    orderBy('fechaRegistro', 'desc')
-  )
-  const querySnapshot = await getDocs(q)
-
-  const data = querySnapshot.docs.map(doc => {
-    const item = doc.data()
-    return {
-      ...item,
-      fechaHospedaje:
-        formatTimestampToDate(item.fechaHospedaje) +
-        ' ' +
-        formatTimestampToHours(item.fechaRegistro),
-      fechaRegistro:
-        formatTimestampToDate(item.fechaRegistro) +
-        ' ' +
-        formatTimestampToHours(item.fechaRegistro)
-    }
-  })
-
-  return data
-}
- */
