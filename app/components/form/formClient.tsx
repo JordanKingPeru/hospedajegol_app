@@ -46,17 +46,6 @@ type FormHsGolClientProps = {
   handleContentChange: (value: string) => void
 }
 
-const deleteRecord = async (id: string) => {
-  try {
-    await db.collection('your_collection_name').doc(id).delete()
-    // Reemplaza 'your_collection_name' con el nombre de tu colección en Firebase
-    console.log('Document successfully deleted!')
-    // Aquí puedes agregar código para actualizar tu UI si es necesario
-  } catch (error) {
-    console.error('Error removing document: ', error)
-  }
-}
-
 export default function FormHsGolClient({
   valueIdClient,
   valueKeyClient,
