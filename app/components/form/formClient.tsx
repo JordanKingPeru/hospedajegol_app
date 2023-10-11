@@ -30,6 +30,7 @@ import {
   serverTimestamp
 } from 'firebase/firestore'
 import { Switch, cn } from '@nextui-org/react'
+import { useViewContext } from '../../ViewContext'
 
 type DateType = Date | string | null
 interface DateRangeType {
@@ -37,49 +38,39 @@ interface DateRangeType {
   endDate: DateType
 }
 
-type FormHsGolClientProps = {
-  valueIdClient: string
-  valueKeyClient: string
-  valueContent: string
-  handleDetalle: () => void
-  handleReporte: () => void
-  handleContentChange: (value: string) => void
-}
-
-export default function FormHsGolClient({
-  valueIdClient,
-  valueKeyClient,
-  valueContent,
-  handleDetalle,
-  handleReporte,
-  handleContentChange
-}: FormHsGolClientProps) {
-  const Content = JSON.parse(valueContent)
+export default function FormHsGolClient() {
+  const { setViewState, content, setContent } = useViewContext()
+  const Content = JSON.parse(content)
 
   type SelectType = { value: string; label: string }
 
   const [isDatosClientes, setIsDatosClientes] = useState(false)
   const [valueRellenadoPor, setValueRellenadoPor] = useState<SelectType>(
-    Content.rellenadoPor
+    Content.rellenadoPor.value
   )
-  const [valueDocType, setValueDocType] = useState<SelectType>(Content.docType)
-  const [valueDocId, setValueDocId] = useState('') //Content.docId
+  console.log('aquí es', valueRellenadoPor)
+  const [valueDocType, setValueDocType] = useState<SelectType>(
+    Content.docType.value
+  )
+  const [valueDocId, setValueDocId] = useState(
+    Content.docId == '21061991' ? '' : Content.docId
+  ) //Content.docId
   const [valueName, setValueName] = useState(Content.name)
   const [valueSecondName, setValueSecondName] = useState(Content.secondName)
   const [valueCanalLlegada, setValueCanalLlegada] = useState<SelectType>(
-    Content.canalLlegada
+    Content.canalLlegada.value
   )
   const [valueBookingNumber, setValueBookingNumber] = useState(
     Content.bookingNumber
   )
   const [valueTipoAlquiler, setValueTipoAlquiler] = useState<SelectType>(
-    Content.tipoAlquiler
+    Content.tipoAlquiler.value
   )
   const [valueHabitacion, setValueHabitacion] = useState<SelectType>(
-    Content.habitacion
+    Content.habitacion.value
   )
   const [valueMedioPago, setValueMedioPago] = useState<SelectType>(
-    Content.medioDePago
+    Content.medioDePago.value
   )
   const [valuePrecio, setValuePrecio] = useState(Content.precio)
   const [valueCantidadPersonas, setValueCantidadPersonas] = useState(
@@ -196,14 +187,14 @@ export default function FormHsGolClient({
   const formattedName = formatName(valueName)
   const formattedSecondName = formatName(valueSecondName)
 
-  const content = {
-    key: valueKeyClient,
-    id: valueIdClient,
+  const content_data = {
+    key: Content.key,
+    id: Content.id,
     docId: !isDatosClientes
       ? valueDocId === ''
         ? '21061991'
         : valueDocId
-      : valueIdClient,
+      : Content.id,
     rellenadoPor: valueRellenadoPor?.label || '',
     docType: valueDocType?.label || '',
     name: !isDatosClientes ? formattedName : 'Sin nombre',
@@ -225,20 +216,20 @@ export default function FormHsGolClient({
     const db = getFirestore()
     const id = doc(collection(db, 'hospedaje'), Content.key)
     try {
-      await updateDoc(id, content)
-      handleContentChange(JSON.stringify(content))
+      await updateDoc(id, content_data)
+      setContent(JSON.stringify(content_data))
     } catch (error) {}
-    handleDetalle()
+    setViewState('detalle')
   }
 
   const guardar_atras = async () => {
-    const db = getFirestore()
+    /* const db = getFirestore()
     const id = doc(collection(db, 'hospedaje'), Content.key)
     try {
-      await updateDoc(id, content)
-      handleContentChange(JSON.stringify(content))
-    } catch (error) {}
-    handleReporte()
+      await updateDoc(id, content_data)
+      setContent(JSON.stringify(content_data))
+    } catch (error) {} */
+    setViewState('reporte')
   }
 
   return (
@@ -294,7 +285,11 @@ export default function FormHsGolClient({
               variant='faded'
               label='Rellenado por:'
               className='w-full'
-              selectedKeys={valueRellenadoPor ? [valueRellenadoPor.value] : []}
+              selectedKeys={
+                valueRellenadoPor
+                  ? [valueRellenadoPor.value]
+                  : [Content.rellenadoPor]
+              }
               onChange={handleSelectionChangeRellenadoPor}
             >
               {rellenadoPor.map(rellenado => (
@@ -315,7 +310,9 @@ export default function FormHsGolClient({
                   variant='faded'
                   label='Tipo documento'
                   className='w-full'
-                  selectedKeys={valueDocType ? [valueDocType.value] : []}
+                  selectedKeys={
+                    valueDocType ? [valueDocType.value] : [Content.docType]
+                  }
                   onChange={handleSelectionChangeDocType}
                 >
                   {tipoDocumento.map(tipDoc => (
@@ -369,7 +366,9 @@ export default function FormHsGolClient({
                   label='¿Cómo conoció HS Gol?'
                   className='w-full'
                   selectedKeys={
-                    valueCanalLlegada ? [valueCanalLlegada.value] : []
+                    valueCanalLlegada
+                      ? [valueCanalLlegada.value]
+                      : [Content.canalLlegada]
                   }
                   onChange={handleSelectionChangeCanal}
                 >
@@ -410,7 +409,11 @@ export default function FormHsGolClient({
               variant='faded'
               label='Tipo alquiler'
               className='w-full'
-              selectedKeys={valueTipoAlquiler ? [valueTipoAlquiler.value] : []}
+              selectedKeys={
+                valueTipoAlquiler
+                  ? [valueTipoAlquiler.value]
+                  : [Content.tipoAlquiler]
+              }
               onChange={handleSelectionTipoAlquiler}
             >
               {tiposAlquiler.map(tipoAlquiler => (
@@ -430,7 +433,9 @@ export default function FormHsGolClient({
               variant='faded'
               label='Habitación'
               className='w-full'
-              selectedKeys={valueHabitacion ? [valueHabitacion.value] : []}
+              selectedKeys={
+                valueHabitacion ? [valueHabitacion.value] : [Content.habitacion]
+              }
               onChange={handleSelectionHabitacion}
             >
               {habitacionDisponible.map(habitacion => (
@@ -477,7 +482,9 @@ export default function FormHsGolClient({
               variant='faded'
               label='Medio de pago'
               className='w-full'
-              selectedKeys={valueMedioPago ? [valueMedioPago.value] : []}
+              selectedKeys={
+                valueMedioPago ? [valueMedioPago.value] : [Content.medioDePago]
+              }
               onChange={handleSelectionMedioPago}
             >
               {medioPago.map(medio => (

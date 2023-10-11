@@ -1,17 +1,17 @@
 export const tipoDocumento = [
   {
     label: 'DNI',
-    value: 'dni',
+    value: 'DNI',
     description: 'Documento Nacional de Identidad'
   },
   {
     label: 'RUC',
-    value: 'ruc',
+    value: 'RUC',
     description: 'Registro Único de Contribuyentes'
   },
   {
     label: 'Carnet de Extranjería',
-    value: 'carnetExtranjeria',
+    value: 'Carnet de Extranjería',
     description: 'Carne de Extranjería'
   }
 ]
@@ -19,27 +19,27 @@ export const tipoDocumento = [
 export const medioPago = [
   {
     label: 'Efectivo',
-    value: 'efectivo',
+    value: 'Efectivo',
     description: 'Efectivo'
   },
   {
     label: 'Tarjeta de Crédito',
-    value: 'tarjetaCredito',
+    value: 'Tarjeta de Crédito',
     description: 'Tarjeta de Crédito'
   },
   {
     label: 'Tarjeta de Débito',
-    value: 'tarjetaDebito',
+    value: 'Tarjeta de Débito',
     description: 'Tarjeta de Débito'
   },
   {
     label: 'Yape o Plin',
-    value: 'yapePlin',
+    value: 'Yape o Plin',
     description: 'Yape o Plin'
   },
   {
     label: 'Transferencia Bancaria',
-    value: 'transferenciaBancaria',
+    value: 'Transferencia Bancaria',
     description: 'Transferencia Bancaria'
   }
 ]
@@ -47,27 +47,27 @@ export const medioPago = [
 export const rellenadoPor = [
   {
     label: 'Victor',
-    value: 'VictorRodriguez',
+    value: 'Victor',
     description: 'Victor Rodriguez'
   },
   {
     label: 'Rosa',
-    value: 'rosaMallqui',
+    value: 'Rosa',
     description: 'Rosa Mallqui'
   },
   {
     label: 'Jahir',
-    value: 'jahirRodriguez',
+    value: 'Jahir',
     description: 'Jahir Rodriguez'
   },
   {
     label: 'Maycol',
-    value: 'maycolRodriguez',
+    value: 'Maycol',
     description: 'Maycol Rodriguez'
   },
   {
     label: 'Jordan',
-    value: 'jordanRodriguez',
+    value: 'Jordan',
     description: 'Jordan Rodriguez'
   }
 ]
@@ -75,37 +75,37 @@ export const rellenadoPor = [
 export const canalContacto = [
   {
     label: 'Facebook',
-    value: 'facebook',
+    value: 'Facebook',
     description: 'Facebook'
   },
   {
     label: 'Whatsapp',
-    value: 'whatsapp',
+    value: 'Whatsapp',
     description: 'Whatsapp'
   },
   {
     label: 'Booking.com',
-    value: 'bookingWeb',
+    value: 'Booking.com',
     description: 'Página web de Booking.com'
   },
   {
     label: 'Expedia.com',
-    value: 'expediaWeb',
+    value: 'Expedia.com',
     description: 'Página web de Expedian.com'
   },
   {
     label: 'Búsqueda en Internet',
-    value: 'busquedaWeb',
+    value: 'Búsqueda en Internet',
     description: 'Busqueda en Internet'
   },
   {
     label: 'Recomendación',
-    value: 'recomendacion',
+    value: 'Recomendación',
     description: 'Recomendación'
   },
   {
     label: 'Vivo, estudio o trabajo cerca',
-    value: 'cercania',
+    value: 'Vivo, estudio o trabajo cerca',
     description: 'Vivo, estudio o trabajo cerca'
   }
 ]
@@ -171,17 +171,17 @@ export const habitacionDisponible = [
 export const tiposAlquiler = [
   {
     label: 'Momentaneo',
-    value: 'momentaneo',
+    value: 'Momentaneo',
     description: 'Alquiler Momentaneo'
   },
   {
     label: 'Por noche',
-    value: 'porNoche',
+    value: 'Por noche',
     description: 'Alquiler por noche'
   },
   {
     label: 'Por mes',
-    value: 'porMes',
+    value: 'Por mes',
     description: 'Alquiler por mes'
   }
 ]

@@ -1,21 +1,17 @@
-import { PhotoIcon, UserCircleIcon } from '@heroicons/react/24/solid'
-import { Button, Image, User } from '@nextui-org/react'
+import { Button, User } from '@nextui-org/react'
+import { useViewContext } from '../../ViewContext'
 
-type FormHsGolProps = {
-  valueContent: string
-  handleReporte: () => void
-}
+type FormHsGolProps = {}
 
 type Timestamp = {
   seconds: number
   nanoseconds: number
 }
 
-export default function FormHsGol({
-  valueContent,
-  handleReporte
-}: FormHsGolProps) {
-  const Content = JSON.parse(valueContent)
+export default function FormHsGol({}: FormHsGolProps) {
+  const { setViewState, content } = useViewContext()
+  const Content = JSON.parse(content)
+
   function timestampToString(timestamp: Timestamp) {
     const months = [
       'Ene',
@@ -110,7 +106,7 @@ export default function FormHsGol({
           radius='sm'
           variant='solid'
           onClick={() => {
-            handleReporte()
+            setViewState('reporte')
           }}
         >
           Confirmar

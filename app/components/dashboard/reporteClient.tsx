@@ -33,8 +33,17 @@ import {
   ModalFooter,
   Divider
 } from '@nextui-org/react'
-
-import { getFirestore, doc, collection, deleteDoc } from 'firebase/firestore'
+import {
+  getFirestore,
+  collection,
+  query,
+  where,
+  getDocs,
+  doc,
+  setDoc,
+  updateDoc,
+  deleteDoc
+} from 'firebase/firestore'
 // Asegúrate de importar tus propios iconos o los de @heroicons/react
 import {
   PlusIcon,
@@ -44,12 +53,22 @@ import {
   UsersIcon
 } from '@heroicons/react/24/solid'
 import { columnsHsGol, statusOptionsHsGol } from './data'
-import { capitalize, fetchLastWeekData } from './hospedajeUtils'
+import { capitalize, FetchLastWeekData } from './hospedajeUtils'
 import AccordionHsGol from './incomeAccordion'
+import { useViewContext } from '../../ViewContext'
+import { typeUserHsGol } from '../typeHsGol'
+import { useNuevoRegistro } from './utilsReportClient'
 
-type DashboardHsGolProps = {
-  nuevoRegistro: () => void
-}
+import {
+  useCurrentDate,
+  isToday,
+  isYesterday,
+  isThisWeek,
+  convertToDate,
+  compareUsers,
+  generateIncomeByDayOfWeek,
+  useFetchDataAndUpdateContent
+} from './utilsReportClient'
 
 const statusColorMap: Record<string, ChipProps['color']> = {
   Momentaneo: 'success',
@@ -59,132 +78,17 @@ const statusColorMap: Record<string, ChipProps['color']> = {
 
 const INITIAL_VISIBLE_COLUMNS_HSGOL = ['name', 'fechaHospedaje', 'actions']
 
-type UserHsGol = {
-  avatar: string
-  bookingNumber: string
-  canalLlegada: string
-  cantidadDias: number
-  cantidadPersonas: number
-  docId: string
-  docType: string
-  fechaHospedaje: string
-  fechaRegistro: string
-  habitacion: string
-  id: string
-  key: string
-  medioDePago: string
-  name: string
-  precio: number
-  rellenadoPor: string
-  secondName: string
-  tipoAlquiler: string
-}
+export default function HospedajeTable() {
+  const { setViewState, setContent, isLoading, setLoading } = useViewContext()
 
-const compareUsers = (
-  a: UserHsGol,
-  b: UserHsGol,
-  sortDescriptor: SortDescriptor
-): number => {
-  if (sortDescriptor.column === 'fechaHospedaje') {
-    const [aDate, aTime] = a.fechaHospedaje.split(' ')
-    const [bDate, bTime] = b.fechaHospedaje.split(' ')
-    const aTimestamp = convertToDate(aDate, aTime)
-    const bTimestamp = convertToDate(bDate, bTime)
-    const cmp = aTimestamp < bTimestamp ? -1 : aTimestamp > bTimestamp ? 1 : 0
-    return sortDescriptor.direction === 'descending' ? -cmp : cmp
-  } else {
-    const first = a[sortDescriptor.column as keyof UserHsGol] as number
-    const second = b[sortDescriptor.column as keyof UserHsGol] as number
-    const cmp = first < second ? -1 : first > second ? 1 : 0
-    return sortDescriptor.direction === 'descending' ? -cmp : cmp
-  }
-}
+  const context = { setViewState, setContent, setLoading }
+  const { nuevoRegistro, isContentReady, setIsContentReady } =
+    useNuevoRegistro(context)
 
-const useCurrentDate = () => {
-  const today = new Date()
-  const yesterday = new Date(today)
-  yesterday.setDate(yesterday.getDate() - 1)
+  const { fetchDataAndUpdateContent } = useFetchDataAndUpdateContent(context)
 
-  const firstDayOfWeek = new Date(today)
-  firstDayOfWeek.setDate(firstDayOfWeek.getDate() - firstDayOfWeek.getDay())
-
-  return { today, yesterday, firstDayOfWeek }
-}
-
-const isToday = (fechaHospedaje: string, today: Date) => {
-  const [fecha, hora] = fechaHospedaje.split(' ')
-  const date = convertToDate(fecha, hora)
-  return (
-    date.getDate() === today.getDate() &&
-    date.getMonth() === today.getMonth() &&
-    date.getFullYear() === today.getFullYear()
-  )
-}
-
-const isYesterday = (fechaHospedaje: string, yesterday: Date) => {
-  const [fecha, hora] = fechaHospedaje.split(' ')
-  const date = convertToDate(fecha, hora)
-  return (
-    date.getDate() === yesterday.getDate() &&
-    date.getMonth() === yesterday.getMonth() &&
-    date.getFullYear() === yesterday.getFullYear()
-  )
-}
-
-const isThisWeek = (fechaHospedaje: string, firstDayOfWeek: Date) => {
-  const [fecha, hora] = fechaHospedaje.split(' ')
-  const date = convertToDate(fecha, hora)
-  return date >= firstDayOfWeek
-}
-const convertToDate = (fecha: string, hora: string) => {
-  const [day, month, year] = fecha.split('/').map(Number)
-  const fullYear = year > 50 ? 1900 + year : 2000 + year // Asumimos que cualquier año mayor a 50 pertenece al siglo 20
-  let [hours, minutes] = hora.split(':').map(Number)
-  const isPM = hora.includes('PM')
-
-  if (isPM && hours !== 12) hours += 12
-  if (!isPM && hours === 12) hours = 0
-
-  const resultDate = new Date(fullYear, month - 1, day, hours, minutes)
-  return resultDate
-}
-
-const generateIncomeByDayOfWeek = (users: UserHsGol[]): any[] => {
-  // Actualizar el arreglo de días de la semana al español y comenzando en lunes
-  const daysOfWeek = ['lun', 'mar', 'mie', 'jue', 'vie', 'sab', 'dom']
-
-  // Actualizar las claves del objeto incomeMap para que coincidan con los nombres de los días en español
-  const incomeMap: Record<string, number> = {
-    lun: 0,
-    mar: 0,
-    mie: 0,
-    jue: 0,
-    vie: 0,
-    sab: 0,
-    dom: 0
-  }
-
-  users.forEach(user => {
-    const [fecha, hora] = user.fechaHospedaje.split(' ')
-    const date = convertToDate(fecha, hora)
-
-    // Ajustar el índice para comenzar en lunes en lugar de domingo
-    let dayIndex = date.getDay() - 1
-    if (dayIndex === -1) dayIndex = 6
-
-    const dayName = daysOfWeek[dayIndex]
-    incomeMap[dayName] += user.precio
-  })
-
-  return daysOfWeek.map(day => ({
-    diaSemana: day,
-    ingresos: incomeMap[day]
-  }))
-}
-
-export default function HospedajeTable({ nuevoRegistro }: DashboardHsGolProps) {
   const [usersHsGol, setUsersHsGol] = useState<any[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  //const [isLoading, setIsLoading] = useState(true)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [recordToDelete, setRecordToDelete] = useState<string | null>(null)
 
@@ -194,11 +98,11 @@ export default function HospedajeTable({ nuevoRegistro }: DashboardHsGolProps) {
   }
 
   useEffect(() => {
-    const result = fetchLastWeekData(setUsersHsGol)
-    setIsLoading(false)
+    const result = FetchLastWeekData(setUsersHsGol)
+    setLoading(false)
 
     return () => result()
-  }, [])
+  }, [setLoading])
 
   const deleteRecord = async () => {
     if (!recordToDelete) {
@@ -277,99 +181,107 @@ export default function HospedajeTable({ nuevoRegistro }: DashboardHsGolProps) {
     return sortedAndFilteredItems.slice(start, end)
   }, [page, sortedAndFilteredItems, rowsPerPage])
 
-  const renderCell = useCallback((user: UserHsGol, columnKey: Key) => {
-    const cellValue = user[columnKey as keyof UserHsGol]
+  const renderCell = useCallback(
+    (user: typeUserHsGol, columnKey: Key) => {
+      const cellValue = user[columnKey as keyof typeUserHsGol]
 
-    switch (columnKey) {
-      case 'name':
-        return (
-          <User
-            avatarProps={{ radius: 'full', size: 'sm', src: user.avatar }}
-            classNames={{
-              description: 'text-default-400',
-              name: 'text-default-600'
-            }}
-            description={user.rellenadoPor + ' ' + user.habitacion}
-            name={cellValue}
-          >
-            {user.rellenadoPor + ' ' + user.habitacion}
-          </User>
-        )
-      case 'fechaHospedaje':
-        return (
-          <div className='my-2 flex flex-col'>
-            <p className='text-bold text-small capitalize'>{cellValue}</p>
-            <p className='text-bold text-tiny capitalize text-default-500'>
-              {'S/. ' + user.precio + ' ' + user.medioDePago}
-            </p>
-            <Divider className='my-2' />
-            <Chip
-              className='gap-1 border-none capitalize text-default-600'
-              color={statusColorMap[user.tipoAlquiler]}
-              size='sm'
-              variant='dot'
+      switch (columnKey) {
+        case 'name':
+          return (
+            <User
+              avatarProps={{ radius: 'full', size: 'sm', src: user.avatar }}
+              classNames={{
+                description: 'text-default-400',
+                name: 'text-default-600'
+              }}
+              description={user.rellenadoPor + ' ' + user.habitacion}
+              name={cellValue}
             >
-              {user.tipoAlquiler}
-            </Chip>
-            <p>
-              <span className='text-bold text-tiny capitalize text-primary-500'>
-                días: {user.cantidadDias} {'  '}
-                <UsersIcon className='ml-2 inline-block h-4 w-4 text-default-500' />
-                : {user.cantidadPersonas}
-              </span>
-            </p>
-          </div>
-        )
-      case 'tipoAlquiler':
-        return (
-          <div className='flex flex-col'>
-            <Chip
-              className='gap-1 border-none capitalize text-default-600'
-              color={statusColorMap[user.tipoAlquiler]}
-              size='sm'
-              variant='dot'
-            >
-              {cellValue}
-            </Chip>
-            <p className='text-bold text-tiny capitalize text-default-500'>
-              Nro días: {user.cantidadDias} - Nro personas:{' '}
-              {user.cantidadPersonas}
-            </p>
-          </div>
-        )
-      case 'actions':
-        console.log(user.key)
-        return (
-          <div className='relative flex items-center justify-end gap-2'>
-            <Dropdown className='border-1 border-default-200 bg-background'>
-              <DropdownTrigger>
-                <Button
-                  aria-label='Detalle'
-                  isIconOnly
-                  radius='full'
-                  size='sm'
-                  variant='light'
-                >
-                  <EllipsisVerticalIcon className='text-default-400' />
-                </Button>
-              </DropdownTrigger>
-              <DropdownMenu>
-                <DropdownItem aria-label='Ver'>Ver</DropdownItem>
-                <DropdownItem aria-label='Editar'>Editar</DropdownItem>
-                <DropdownItem
-                  aria-label='Eliminar'
-                  onClick={() => confirmDelete(user.key)}
-                >
-                  Eliminar
-                </DropdownItem>
-              </DropdownMenu>
-            </Dropdown>
-          </div>
-        )
-      default:
-        return cellValue
-    }
-  }, [])
+              {user.rellenadoPor + ' ' + user.habitacion}
+            </User>
+          )
+        case 'fechaHospedaje':
+          return (
+            <div className='my-2 flex flex-col'>
+              <p className='text-bold text-small capitalize'>{cellValue}</p>
+              <p className='text-bold text-tiny capitalize text-default-500'>
+                {'S/. ' + user.precio + ' ' + user.medioDePago}
+              </p>
+              <Divider className='my-2' />
+              <Chip
+                className='gap-1 border-none capitalize text-default-600'
+                color={statusColorMap[user.tipoAlquiler]}
+                size='sm'
+                variant='dot'
+              >
+                {user.tipoAlquiler}
+              </Chip>
+              <p>
+                <span className='text-bold text-tiny capitalize text-primary-500'>
+                  días: {user.cantidadDias} {'  '}
+                  <UsersIcon className='ml-2 inline-block h-4 w-4 text-default-500' />
+                  : {user.cantidadPersonas}
+                </span>
+              </p>
+            </div>
+          )
+        case 'tipoAlquiler':
+          return (
+            <div className='flex flex-col'>
+              <Chip
+                className='gap-1 border-none capitalize text-default-600'
+                color={statusColorMap[user.tipoAlquiler]}
+                size='sm'
+                variant='dot'
+              >
+                {cellValue}
+              </Chip>
+              <p className='text-bold text-tiny capitalize text-default-500'>
+                Nro días: {user.cantidadDias} - Nro personas:{' '}
+                {user.cantidadPersonas}
+              </p>
+            </div>
+          )
+        case 'actions':
+          console.log(user.key)
+          return (
+            <div className='relative flex items-center justify-end gap-2'>
+              <Dropdown className='border-1 border-default-200 bg-background'>
+                <DropdownTrigger>
+                  <Button
+                    aria-label='Detalle'
+                    isIconOnly
+                    radius='full'
+                    size='sm'
+                    variant='light'
+                  >
+                    <EllipsisVerticalIcon className='text-default-400' />
+                  </Button>
+                </DropdownTrigger>
+                <DropdownMenu>
+                  <DropdownItem
+                    aria-label='Ver'
+                    onClick={() => fetchDataAndUpdateContent(user.key)}
+                  >
+                    Ver
+                  </DropdownItem>
+                  <DropdownItem aria-label='Editar'>Editar</DropdownItem>
+                  <DropdownItem
+                    aria-label='Eliminar'
+                    onClick={() => confirmDelete(user.key)}
+                  >
+                    Eliminar
+                  </DropdownItem>
+                </DropdownMenu>
+              </Dropdown>
+            </div>
+          )
+        default:
+          return cellValue
+      }
+    },
+    [setContent, setViewState]
+  )
 
   const onRowsPerPageChange = useCallback(
     (e: ChangeEvent<HTMLSelectElement>) => {

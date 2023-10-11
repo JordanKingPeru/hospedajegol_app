@@ -13,6 +13,8 @@ import {
   onSnapshot
 } from 'firebase/firestore'
 
+import { typeUserHsGol } from '../typeHsGol'
+
 export const getOneWeekAgoDate = (): Date => {
   const date = new Date()
   date.setDate(date.getDate() - 7)
@@ -49,29 +51,8 @@ export const formatTimestampToHours = (timestamp: {
   return `${hours}:${minutes} ${ampm}`
 }
 
-type UserHsGol = {
-  avatar?: string
-  bookingNumber?: string
-  canalLlegada?: string
-  cantidadDias?: number
-  cantidadPersonas?: number
-  docId?: string
-  docType?: string
-  habitacion?: string
-  id?: string
-  key?: string
-  medioDePago?: string
-  name?: string
-  precio?: number
-  rellenadoPor?: string
-  secondName?: string
-  tipoAlquiler?: string
-  fechaHospedaje?: string
-  fechaRegistro?: string
-}
-
-export const fetchLastWeekData = (
-  setDataCallback: (data: UserHsGol[]) => void
+export const FetchLastWeekData = (
+  setDataCallback: (data: typeUserHsGol[]) => void
 ) => {
   const db = getFirestore()
   const hospedajeCollection = collection(db, 'hospedaje')
@@ -82,7 +63,7 @@ export const fetchLastWeekData = (
     hospedajeCollection,
     where('fechaHospedaje', '>=', lastWeekTimestamp),
     orderBy('fechaHospedaje'),
-    orderBy('fechaRegistro', 'desc')
+    orderBy('fechaRegistro', 'asc')
   )
 
   // Utilizamos onSnapshot para "escuchar" los cambios en los datos en tiempo real
@@ -90,7 +71,13 @@ export const fetchLastWeekData = (
     const data = querySnapshot.docs.map(doc => {
       const item = doc.data()
       return {
-        ...item,
+        avatar: item.avatar,
+        bookingNumber: item.bookingNumber,
+        canalLlegada: item.canalLlegada,
+        cantidadDias: item.cantidadDias,
+        cantidadPersonas: item.cantidadPersonas,
+        docId: item.docId,
+        docType: item.docType,
         fechaHospedaje:
           formatTimestampToDate(item.fechaHospedaje) +
           ' ' +
@@ -98,7 +85,16 @@ export const fetchLastWeekData = (
         fechaRegistro:
           formatTimestampToDate(item.fechaRegistro) +
           ' ' +
-          formatTimestampToHours(item.fechaRegistro)
+          formatTimestampToHours(item.fechaRegistro),
+        habitacion: item.habitacion,
+        id: item.id,
+        key: item.key,
+        medioDePago: item.medioDePago,
+        name: item.name,
+        precio: item.precio,
+        rellenadoPor: item.rellenadoPor,
+        secondName: item.secondName,
+        tipoAlquiler: item.tipoAlquiler
       }
     })
     // Usamos el callback para actualizar el estado de los datos en el componente

@@ -55,9 +55,14 @@ export const validateName = (value: string): boolean =>
  * @param {string} value - El valor del precio.
  * @return {boolean} - Verdadero si el precio es válido, falso de lo contrario.
  */
-export const validatePrecio = (value: string): boolean => {
-  if (!value) return false
-  return !!value.match(/^(0|[1-9]\d*)(\.\d)?$/)
+export const validatePrecio = (value: string | number): boolean => {
+  // Convertimos el valor a cadena si es un número
+  const valueStr = typeof value === 'number' ? value.toString() : value
+
+  if (!valueStr) return false
+
+  // La expresión regular ahora permite más dígitos después del punto decimal
+  return !!valueStr.match(/^(0|[1-9]\d*)(\.\d+)?$/)
 }
 
 /**
